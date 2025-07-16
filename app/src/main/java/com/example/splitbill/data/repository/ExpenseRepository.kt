@@ -1,0 +1,20 @@
+package com.example.splitbill.data.repository
+
+import com.example.splitbill.data.local.dao.ExpenseDao
+import com.example.splitbill.data.local.entity.Expense
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+
+class ExpenseRepository @Inject constructor(
+    private val expenseDao: ExpenseDao
+) {
+
+    fun getExpensesForBill(billId: Long): Flow<List<Expense>> = expenseDao.getExpensesForBill(billId)
+
+    suspend fun upsertExpense(expense: Expense) = expenseDao.upsertExpense(expense)
+
+    suspend fun deleteExpense(expense: Expense) = expenseDao.deleteExpense(expense)
+
+    suspend fun getExpenseById(id: Long): Expense? = expenseDao.getExpenseById(id)
+}
+
