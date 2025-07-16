@@ -24,5 +24,4 @@ fun Navigation(
             // EventScreen(navController = navController, state = state)
         }
     }
-
 }
