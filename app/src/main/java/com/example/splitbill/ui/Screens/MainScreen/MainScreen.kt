@@ -1,0 +1,384 @@
+package com.example.splitbill.ui.Screens.MainScreen
+
+import android.R.attr.onClick
+import android.R.attr.text
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Blue
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.splitbill.data.repository.BillRepository
+import com.example.splitbill.data.repository.FriendRepository
+import com.example.splitbill.ui.components.MyAppButton
+import com.example.splitbill.R
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.example.splitbill.navigation.AddEventRoute
+import com.example.splitbill.ui.Screens.AddBillScreen.AddBillIntent
+
+
+@Composable
+fun MainScreen(
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel,
+    navController: NavController,
+    ) {
+
+    LaunchedEffect(Unit) {
+        viewModel.handleIntent(MainIntent.FetchFriends)
+
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                MainEffect.NavigateToBillScreen -> {
+                    navController.navigate(AddEventRoute)
+                }
+            }
+        }
+    }
+
+    val state by viewModel.state.collectAsState()
+
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        if (state.isLoading) {
+            CircularProgressIndicator()
+        }
+
+        if (state.addFriendDialog) {
+
+                AddFriendDialog(
+                    name = state.friendName,
+                    onNameChange = { viewModel.handleIntent(MainIntent.OnNewFriendNameChange(it)) },
+                    onAddClick = { viewModel.handleIntent(MainIntent.AddFriend) },
+                    onCancelClick = { viewModel.handleIntent(MainIntent.CloseAddFriendDialog) },
+                    onDismissRequest = { viewModel.handleIntent(MainIntent.CloseAddFriendDialog) }
+                )
+
+        }
+
+        Column(
+            modifier = Modifier
+                .background(color = Color(0xFFE0E0E0))
+                .fillMaxSize()
+
+        ) {
+            Text(
+                text = "Home",
+                fontSize = 40.sp,
+                modifier = Modifier
+                    .padding(16.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            HorizontalCardRow()
+
+            MyAppButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .height(50.dp),
+                text = "Add Bill",
+                onClick = {
+                    viewModel.handleIntent(MainIntent.OnAddBillClicked)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Column(
+                verticalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
+                    .background(color = Color.White)
+                    .fillMaxSize()
+                    .padding(16.dp),
+            ){
+                Text(
+                    text = "Friends",
+                    fontSize = 30.sp,
+                )
+
+                ScrollingGrid(
+                    friends = state.friends.map { it.name }
+                )
+
+                MyAppButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .height(50.dp),
+                    text = "Add Friend",
+                    onClick = { viewModel.handleIntent(MainIntent.OpenAddFriendDialog) }
+                )
+            }
+
+        }
+
+
+    }
+
+
+
+
+
+
+}
+
+/*@Preview
+@Composable
+fun MainScreenPreview() {
+    MainScreen()
+}*/
+
+
+
+@Composable
+fun AddFriendDialog(
+    name: String,
+    onNameChange: (String) -> Unit,
+    onAddClick: () -> Unit,
+    onCancelClick: () -> Unit,
+    onDismissRequest: () -> Unit
+
+    ) {
+    Dialog(onDismissRequest = onDismissRequest) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(Color.White, shape = RoundedCornerShape(16.dp))
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Avatar",
+                    modifier = Modifier
+                        .size(64.dp)
+                        .padding(bottom = 16.dp)
+                )
+
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = onNameChange,
+                    label = { Text("Name") },
+                    shape = RoundedCornerShape(50),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Button(
+                        onClick = onAddClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+                    ) {
+                        Text("Add", color = Color.White)
+                    }
+
+                    Button(
+                        onClick = onCancelClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("Cancel", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+
+@Composable
+fun ScrollingGrid(
+    friends: List<String>
+) {
+
+    LazyHorizontalGrid(
+        rows = GridCells.Fixed(2),
+        modifier = Modifier
+            .height(300.dp) // make sure to give height for 2 rows
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        friends.forEach { friend ->
+            item {
+                FriendBox(
+                    name = friend,
+                )
+            }
+        }
+
+    }
+}
+
+
+
+@Composable
+fun HorizontalCardRow() {
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp) // space between cards
+    ) {
+        items(10) { index -> // say you have 10 cards
+            BillBox(
+                value = (index + 1) * 10.0, // just an example value
+                participants = index + 1 // just an example participant count
+            )
+        }
+    }
+}
+
+
+
+@Composable
+fun BillBox(
+    value: Double,
+    participants: Int
+) {
+    Column(
+        modifier = Modifier
+            .shadow(
+                elevation = 6.dp,
+                shape = RoundedCornerShape(16.dp),
+                clip = false // keep shadow outside the bounds
+            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFADEED9))
+            .padding(20.dp)
+            ,
+
+    ) {
+        Text(
+            text = "Total bill",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Light
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "$ $value",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Participants",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Light
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "$participants",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold
+
+        )
+    }
+
+}
+
+@Composable
+fun FriendBox(
+    name: String,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .size(130.dp)
+            .shadow(
+                elevation = 6.dp,
+                shape = RoundedCornerShape(16.dp),
+                clip = false // keep shadow outside the bounds
+            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(color = Color(0xFFE0E0E0))
+            .padding(10.dp)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.icons8_user),
+            contentDescription = "Friend Icon",
+            modifier = Modifier
+                .size(80.dp)
+        )
+        Text(
+            text = name,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+    }
+}
+
+@Preview
+@Composable
+fun previewFriendBox() {
+    FriendBox(
+        name = "John Doe"
+    )
+}
+
+
+
+/*@Preview
+@Composable
+fun previewBillBox() {
+    BillBox(
+        value = 100.0,
+        participants = 5
+    )
+}*/

@@ -16,7 +16,7 @@ interface FriendDao {
     @Delete
     suspend fun deleteFriend(friend: Friend)
 
-    @Query("SELECT * FROM friend ORDER BY name ASC")
+    @Query("SELECT * FROM Friend ORDER BY name ASC")
     fun getFriends(): Flow<List<Friend>>
 
     @Query("SELECT * FROM Friend WHERE id = :id LIMIT 1")
