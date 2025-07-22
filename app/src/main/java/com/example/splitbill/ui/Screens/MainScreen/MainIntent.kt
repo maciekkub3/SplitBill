@@ -1,7 +1,6 @@
 package com.example.splitbill.ui.Screens.MainScreen
 
 import com.example.splitbill.data.local.entity.Friend
-import com.example.splitbill.ui.Screens.AddBillScreen.AddBillIntent
 
 sealed class MainIntent {
     object LoadAll : MainIntent()

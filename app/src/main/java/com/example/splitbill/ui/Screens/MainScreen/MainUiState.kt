@@ -13,3 +13,4 @@ data class MainUiState(
     val friendName: String = "",
     val friendImageUri: String? = null
 )
+

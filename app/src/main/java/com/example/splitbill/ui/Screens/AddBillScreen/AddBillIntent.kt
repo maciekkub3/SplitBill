@@ -6,3 +6,4 @@ sealed class AddBillIntent {
     object SaveBill : AddBillIntent()
     object FetchFriends : AddBillIntent()
 }
+
