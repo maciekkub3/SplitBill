@@ -9,7 +9,7 @@ class FriendRepository @Inject constructor(
     private val friendDao: FriendDao
 ) {
 
-    val allFriends: Flow<List<Friend>> = friendDao.getFriends()
+    fun getFriends(): Flow<List<Friend>> = friendDao.getFriends()
 
     suspend fun upsertFriend(friend: Friend) = friendDao.upsertFriend(friend)
 

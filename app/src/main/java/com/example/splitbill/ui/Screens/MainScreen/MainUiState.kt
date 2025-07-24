@@ -9,5 +9,8 @@ data class MainUiState(
     val addFriendDialog: Boolean = false,
     val editFriendDialog: Boolean = false,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val friendName: String = "",
+    val friendImageUri: String? = null
 )
+
