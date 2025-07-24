@@ -1,16 +1,11 @@
 package com.example.splitbill.ui.Screens.AddBillScreen
 
 import android.util.Log
-import android.util.Log.e
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.splitbill.data.local.entity.Bill
 import com.example.splitbill.data.repository.BillRepository
 import com.example.splitbill.data.repository.FriendRepository
-import com.example.splitbill.ui.Screens.AddBillScreen.AddBillUiState
-import com.example.splitbill.ui.Screens.BillScreen.BillIntent
-import com.example.splitbill.ui.Screens.MainScreen.MainIntent
-import com.example.splitbill.ui.Screens.MainScreen.MainUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,7 +27,7 @@ class AddBillViewModel @Inject constructor(
         when (intent) {
             is AddBillIntent.EnterTitle -> enterTitle(intent.title)
             AddBillIntent.SaveBill -> handleSaveBill()
-            is AddBillIntent.ToggleParticipant -> TODO()
+            is AddBillIntent.ToggleParticipant -> toggleParticipant(intent.friendId)
             AddBillIntent.FetchFriends -> fetchFriends()
         }
     }
@@ -54,6 +49,18 @@ class AddBillViewModel @Inject constructor(
         }
     }
 
+    fun toggleParticipant(friendId: Long) {
+        val selectedFriendIds = _state.value.selectedFriendIds.toMutableSet()
+        if (selectedFriendIds.contains(friendId)) {
+            selectedFriendIds.remove(friendId)
+            _state.value = _state.value.copy(selectedFriendIds = selectedFriendIds)
+        } else {
+            selectedFriendIds.add(friendId)
+            _state.value = _state.value.copy(selectedFriendIds = selectedFriendIds)
+        }
+
+    }
+
     fun enterTitle(title: String) {
         _state.value = _state.value.copy(
             title = title
@@ -68,7 +75,8 @@ class AddBillViewModel @Inject constructor(
 
             try {
                 val bill = Bill(title = _state.value.title)
-                billRepository.upsertBill(bill)
+                val participants = _state.value.selectedFriendIds
+                billRepository.insertBillAndParticipants(bill, participants.toList())
 
                 _state.value = AddBillUiState(saveSuccess = true)
 

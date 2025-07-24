@@ -11,12 +11,15 @@ import kotlinx.coroutines.flow.Flow
 interface BillParticipantDao {
 
     @Upsert
-    suspend fun upsertBillParticipant(billParticipant: BillParticipant)
+    suspend fun upsertBillParticipants(billParticipants: List<BillParticipant>)
 
     @Delete
     suspend fun deleteBillParticipant(billParticipant: BillParticipant)
 
     @Query("SELECT * FROM BillParticipant WHERE billId = :billId")
     fun getParticipantsForBill(billId: Long): Flow<List<BillParticipant>>
+
+    @Query("SELECT * FROM BillParticipant")
+    fun getAllParticipants(): Flow<List<BillParticipant>>
 
 }

@@ -13,6 +13,7 @@ sealed class MainIntent {
 
     object OnAddBillClicked  : MainIntent()
     object FetchFriends : MainIntent()
+    object FetchBills : MainIntent()
 
 
     data class OnNewFriendNameChange(val name: String) : MainIntent()

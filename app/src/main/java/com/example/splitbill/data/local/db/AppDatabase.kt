@@ -1,6 +1,8 @@
 package com.example.splitbill.data.local.db
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.splitbill.data.local.dao.BillDao
 import com.example.splitbill.data.local.dao.BillParticipantDao
@@ -18,7 +20,8 @@ import com.example.splitbill.data.local.entity.Friend
         BillParticipant::class,
         Expense::class,
     ],
-    version = 1
+    version = 3,
+    exportSchema = true
 )
 abstract class AppDatabase: RoomDatabase() {
 
@@ -27,5 +30,6 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun billDao(): BillDao
     abstract fun billParticipantDao(): BillParticipantDao
     abstract fun expenseDao(): ExpenseDao
+
 
 }

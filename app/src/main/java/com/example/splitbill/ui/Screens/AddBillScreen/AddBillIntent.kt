@@ -2,7 +2,7 @@ package com.example.splitbill.ui.Screens.AddBillScreen
 
 sealed class AddBillIntent {
     data class EnterTitle(val title: String) : AddBillIntent()
-    data class ToggleParticipant(val friendId: Int) : AddBillIntent()
+    data class ToggleParticipant(val friendId: Long) : AddBillIntent()
     object SaveBill : AddBillIntent()
     object FetchFriends : AddBillIntent()
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.splitbill.data.local.entity.Bill
 import com.example.splitbill.data.local.entity.Friend
+import com.example.splitbill.data.repository.BillParticipantRepository
 import com.example.splitbill.data.repository.BillRepository
 import com.example.splitbill.data.repository.FriendRepository
 import com.example.splitbill.navigation.AddEventRoute
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,6 +26,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val billRepository: BillRepository,
     private val friendRepository: FriendRepository,
+    private val billParticipantRepository: BillParticipantRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MainUiState())
@@ -41,6 +44,7 @@ class MainViewModel @Inject constructor(
             is MainIntent.OnAddBillClicked -> onAddBillClicked()
             is MainIntent.OnNewFriendNameChange -> onNewFriendNameChange(intent.name)
             MainIntent.FetchFriends -> fetchFriends()
+            MainIntent.FetchBills -> fetchBillsWithParticipants()
 
 
             MainIntent.CloseEditFriendDialog -> TODO()
@@ -48,10 +52,32 @@ class MainViewModel @Inject constructor(
             is MainIntent.EditFriend -> TODO()
             MainIntent.LoadAll -> TODO()
             is MainIntent.OpenEditFriendDialog -> TODO()
-
-
         }
     }
+
+    fun fetchBillsWithParticipants() {
+        viewModelScope.launch {
+            combine(
+                billRepository.allBills(),
+                billParticipantRepository.getAllParticipants()
+            ) { bills, participants ->
+                val countMap = participants.groupingBy { it.billId }.eachCount()
+                bills.map { bill ->
+                    BillWithParticipantCount(
+                        id = bill.id,
+                        title = bill.title,
+                        createdAt = bill.createdAt,
+                        participantCount = countMap[bill.id] ?: 0
+                    )
+                }
+            }.collect { billsWithCount ->
+                _state.value = _state.value.copy(
+                    bills = billsWithCount
+                )
+            }
+        }
+    }
+
 
     fun fetchFriends() {
         viewModelScope.launch {
