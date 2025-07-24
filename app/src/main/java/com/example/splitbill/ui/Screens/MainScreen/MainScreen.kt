@@ -2,6 +2,7 @@ package com.example.splitbill.ui.Screens.MainScreen
 
 import android.R.attr.onClick
 import android.R.attr.text
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,14 +45,18 @@ import com.example.splitbill.data.repository.FriendRepository
 import com.example.splitbill.ui.components.MyAppButton
 import com.example.splitbill.R
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -68,6 +73,7 @@ fun MainScreen(
 
     LaunchedEffect(Unit) {
         viewModel.handleIntent(MainIntent.FetchFriends)
+        viewModel.handleIntent(MainIntent.FetchBills)
 
         viewModel.effect.collect { effect ->
             when (effect) {
@@ -114,7 +120,9 @@ fun MainScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            HorizontalCardRow()
+            HorizontalCardRow(
+                bills = state.bills
+            )
 
             MyAppButton(
                 modifier = Modifier
@@ -249,7 +257,7 @@ fun ScrollingGrid(
     LazyHorizontalGrid(
         rows = GridCells.Fixed(2),
         modifier = Modifier
-            .height(300.dp) // make sure to give height for 2 rows
+            .height(300.dp)
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -268,68 +276,61 @@ fun ScrollingGrid(
 
 
 @Composable
-fun HorizontalCardRow() {
+fun HorizontalCardRow(bills: List<BillWithParticipantCount>) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp) // space between cards
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(10) { index -> // say you have 10 cards
-            BillBox(
-                value = (index + 1) * 10.0, // just an example value
-                participants = index + 1 // just an example participant count
+        items(bills) { bill ->
+            BillBox(bill = bill)
+        }
+    }
+}
+
+@SuppressLint("SimpleDateFormat")
+@Composable
+fun BillBox(bill: BillWithParticipantCount) {
+    Card(
+        modifier = Modifier.size(width = 160.dp, height = 120.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = bill.title,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "Created: ${java.text.SimpleDateFormat("dd MMM yyyy").format(java.util.Date(bill.createdAt))}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "${bill.participantCount} participant${if (bill.participantCount != 1) "s" else ""}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
 }
 
-
-
+@Preview(showBackground = true)
 @Composable
-fun BillBox(
-    value: Double,
-    participants: Int
-) {
-    Column(
-        modifier = Modifier
-            .shadow(
-                elevation = 6.dp,
-                shape = RoundedCornerShape(16.dp),
-                clip = false // keep shadow outside the bounds
-            )
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFFADEED9))
-            .padding(20.dp)
-            ,
-
-    ) {
-        Text(
-            text = "Total bill",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Light
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "$ $value",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Participants",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Light
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "$participants",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
-
-        )
-    }
-
+fun BillBoxPreview() {
+    val sampleBill = BillWithParticipantCount(
+        id = 1L,
+        title = "Dinner Party",
+        createdAt = System.currentTimeMillis(),
+        participantCount = 5
+    )
+    BillBox(bill = sampleBill)
 }
 
 @Composable
@@ -343,7 +344,7 @@ fun FriendBox(
             .shadow(
                 elevation = 6.dp,
                 shape = RoundedCornerShape(16.dp),
-                clip = false // keep shadow outside the bounds
+                clip = false
             )
             .clip(RoundedCornerShape(16.dp))
             .background(color = Color(0xFFE0E0E0))

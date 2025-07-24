@@ -12,7 +12,9 @@ class BillParticipantRepository @Inject constructor(
 
     fun getParticipantsForBill(billId: Long): Flow<List<BillParticipant>> = billParticipantDao.getParticipantsForBill(billId)
 
-    suspend fun upsertBillParticipant(participant: BillParticipant) = billParticipantDao.upsertBillParticipant(participant)
+    suspend fun upsertBillParticipants(participants: List<BillParticipant>) = billParticipantDao.upsertBillParticipants(participants)
 
     suspend fun deleteBillParticipant(participant: BillParticipant) = billParticipantDao.deleteBillParticipant(participant)
+
+    fun getAllParticipants(): Flow<List<BillParticipant>> = billParticipantDao.getAllParticipants()
 }

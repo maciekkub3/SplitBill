@@ -7,8 +7,18 @@ import androidx.room.PrimaryKey
 
 @Entity(
     foreignKeys = [
-        ForeignKey(entity = Bill::class, parentColumns = ["id"], childColumns = ["billId"], onDelete = ForeignKey.CASCADE),
-        ForeignKey(entity = Friend::class, parentColumns = ["id"], childColumns = ["paidById"], onDelete = ForeignKey.SET_NULL),
+        ForeignKey(
+            entity = Bill::class,
+            parentColumns = ["id"],
+            childColumns = ["billId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Friend::class,
+            parentColumns = ["id"],
+            childColumns = ["paidById"],
+            onDelete = ForeignKey.SET_NULL
+        ),
     ],
     indices = [Index("billId"), Index("paidById")]
 )

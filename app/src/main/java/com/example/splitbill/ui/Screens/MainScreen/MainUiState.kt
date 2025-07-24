@@ -4,7 +4,7 @@ import com.example.splitbill.data.local.entity.Bill
 import com.example.splitbill.data.local.entity.Friend
 
 data class MainUiState(
-    val bills: List<Bill> = emptyList(),
+    val bills: List<BillWithParticipantCount> = emptyList(),
     val friends: List<Friend> = emptyList(),
     val addFriendDialog: Boolean = false,
     val editFriendDialog: Boolean = false,
@@ -12,5 +12,12 @@ data class MainUiState(
     val error: String? = null,
     val friendName: String = "",
     val friendImageUri: String? = null
+
 )
 
+data class BillWithParticipantCount(
+    val id: Long,
+    val title: String,
+    val createdAt: Long,
+    val participantCount: Int
+)
