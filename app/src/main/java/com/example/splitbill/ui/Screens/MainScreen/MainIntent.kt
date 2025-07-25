@@ -8,7 +8,7 @@ sealed class MainIntent {
 
 
     object AddFriend : MainIntent()
-    data class EditFriend(val friend:Friend) : MainIntent()
+    data class EditFriend(val id: Long?, val newName: String) : MainIntent()
     data class DeleteFriend(val friend:Friend) : MainIntent()
 
     object OnAddBillClicked  : MainIntent()

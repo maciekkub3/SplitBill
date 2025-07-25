@@ -22,7 +22,6 @@ interface BillDao {
     @Insert
     suspend fun insertParticipants(participants: List<BillParticipant>)
 
-
     @Transaction
     suspend fun insertBillAndParticipants(bill: Bill, participants: List<BillParticipant>): Long {
         val billId = upsertBill(bill)
@@ -30,8 +29,6 @@ interface BillDao {
         insertParticipants(participants)
         return billId
     }
-
-
 
     @Query("SELECT * FROM BillParticipant WHERE billId = :billId")
     fun getBillParticipants(billId: Long) : Flow<List<BillParticipant>>
@@ -41,7 +38,5 @@ interface BillDao {
 
     @Query("SELECT * FROM Bill WHERE id = :id LIMIT 1")
     suspend fun getBillById(id: Int): Bill?
-
-
 
 }

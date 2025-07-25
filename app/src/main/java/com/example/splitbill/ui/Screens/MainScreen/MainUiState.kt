@@ -1,6 +1,6 @@
 package com.example.splitbill.ui.Screens.MainScreen
 
-import com.example.splitbill.data.local.entity.Bill
+import com.example.splitbill.data.classes.BillWithParticipantCount
 import com.example.splitbill.data.local.entity.Friend
 
 data class MainUiState(
@@ -11,13 +11,6 @@ data class MainUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val friendName: String = "",
-    val friendImageUri: String? = null
-
-)
-
-data class BillWithParticipantCount(
-    val id: Long,
-    val title: String,
-    val createdAt: Long,
-    val participantCount: Int
+    val friendImageUri: String? = null,
+    val editingFriendId: Long? = null
 )

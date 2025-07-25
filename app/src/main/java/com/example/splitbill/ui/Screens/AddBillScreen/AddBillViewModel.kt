@@ -15,7 +15,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddBillViewModel @Inject constructor(
-
     private val billRepository: BillRepository,
     private val friendRepository: FriendRepository,
 ) : ViewModel() {
@@ -58,7 +57,6 @@ class AddBillViewModel @Inject constructor(
             selectedFriendIds.add(friendId)
             _state.value = _state.value.copy(selectedFriendIds = selectedFriendIds)
         }
-
     }
 
     fun enterTitle(title: String) {
@@ -66,8 +64,6 @@ class AddBillViewModel @Inject constructor(
             title = title
         )
     }
-
-
     private fun handleSaveBill() {
         viewModelScope.launch {
 
@@ -90,5 +86,4 @@ class AddBillViewModel @Inject constructor(
             }
         }
     }
-
 }

@@ -12,7 +12,6 @@ data class BillUiState(
     val showSettlementDialog: Boolean = false
 
 )
-
 data class ExpenseDisplayItem(
     val id: Long,
     val name: String,
@@ -20,7 +19,6 @@ data class ExpenseDisplayItem(
     val paidByName: String?, // null if deleted
     val date: Long
 )
-
 data class SettlementEntry(
     val from: String,
     val to: String,

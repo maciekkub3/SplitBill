@@ -8,7 +8,6 @@ import javax.inject.Inject
 class FriendRepository @Inject constructor(
     private val friendDao: FriendDao
 ) {
-
     fun getFriends(): Flow<List<Friend>> = friendDao.getFriends()
 
     suspend fun upsertFriend(friend: Friend) = friendDao.upsertFriend(friend)
@@ -16,4 +15,6 @@ class FriendRepository @Inject constructor(
     suspend fun deleteFriend(friend: Friend) = friendDao.deleteFriend(friend)
 
     suspend fun getFriendById(id: Int): Friend? = friendDao.getFriendById(id)
+
+    suspend fun updateFriendName(id: Long?, newName: String) = friendDao.updateFriendName(id, newName)
 }

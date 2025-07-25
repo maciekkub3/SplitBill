@@ -3,20 +3,16 @@ package com.example.splitbill.ui.Screens.MainScreen
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.splitbill.data.local.entity.Bill
 import com.example.splitbill.data.local.entity.Friend
 import com.example.splitbill.data.repository.BillParticipantRepository
 import com.example.splitbill.data.repository.BillRepository
 import com.example.splitbill.data.repository.FriendRepository
-import com.example.splitbill.navigation.AddEventRoute
-import com.example.splitbill.ui.Screens.AddBillScreen.AddBillIntent
-import com.example.splitbill.ui.Screens.AddBillScreen.AddBillUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.example.splitbill.data.classes.BillWithParticipantCount
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -49,11 +45,35 @@ class MainViewModel @Inject constructor(
 
             MainIntent.CloseEditFriendDialog -> TODO()
             is MainIntent.DeleteFriend -> TODO()
-            is MainIntent.EditFriend -> TODO()
+            is MainIntent.EditFriend -> editFriendName(intent.id, intent.newName)
             MainIntent.LoadAll -> TODO()
-            is MainIntent.OpenEditFriendDialog -> TODO()
+            is MainIntent.OpenEditFriendDialog -> openEditFriendDialog(intent.friend)
         }
     }
+
+
+    fun editFriendName(id: Long?, newName: String) {
+
+        viewModelScope.launch {
+
+            _state.value = _state.value.copy(isLoading = true)
+
+            try {
+                friendRepository.updateFriendName(id, newName)
+
+                _state.value = MainUiState(isLoading = false)
+
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Error editing friend", e)
+
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Unknown error"
+                )
+            }
+        }
+    }
+
 
     fun fetchBillsWithParticipants() {
         viewModelScope.launch {
@@ -78,7 +98,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-
     fun fetchFriends() {
         viewModelScope.launch {
             try {
@@ -88,7 +107,6 @@ class MainViewModel @Inject constructor(
                         isLoading = false,
                     )
                 }
-
             } catch (e: Exception) {
                 Log.e("MainViewModel", "Error fetching friends", e)
                 _state.value = _state.value.copy(error = e.message ?: "Unknown error")
@@ -116,6 +134,23 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun closeEditFriendDialog() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(
+                editFriendDialog = false,
+            )
+        }
+    }
+
+    private fun openEditFriendDialog(friend: Friend) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(
+                editFriendDialog = true,
+                friendName = friend.name,
+                editingFriendId = friend.id
+            )
+        }
+    }
     private fun openAddFriendDialog() {
         viewModelScope.launch {
             _state.value = _state.value.copy(
@@ -146,7 +181,4 @@ class MainViewModel @Inject constructor(
             }
         }
     }
-
-
-
 }

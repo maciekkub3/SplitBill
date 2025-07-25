@@ -22,4 +22,8 @@ interface FriendDao {
     @Query("SELECT * FROM Friend WHERE id = :id LIMIT 1")
     suspend fun getFriendById(id: Int): Friend?
 
+    @Query("UPDATE Friend SET name = :newName WHERE id = :id")
+        suspend fun updateFriendName(id: Long?, newName: String)
+
+
 }

@@ -9,7 +9,6 @@ import javax.inject.Inject
 class BillParticipantRepository @Inject constructor(
     private val billParticipantDao: BillParticipantDao
 ) {
-
     fun getParticipantsForBill(billId: Long): Flow<List<BillParticipant>> = billParticipantDao.getParticipantsForBill(billId)
 
     suspend fun upsertBillParticipants(participants: List<BillParticipant>) = billParticipantDao.upsertBillParticipants(participants)

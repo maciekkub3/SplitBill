@@ -1,11 +1,9 @@
 package com.example.splitbill.ui.Screens.MainScreen
 
-import android.R.attr.onClick
-import android.R.attr.text
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,11 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
@@ -32,19 +29,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Blue
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.splitbill.data.repository.BillRepository
-import com.example.splitbill.data.repository.FriendRepository
 import com.example.splitbill.ui.components.MyAppButton
 import com.example.splitbill.R
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
@@ -58,10 +49,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.Dialog
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.splitbill.data.classes.BillWithParticipantCount
+import com.example.splitbill.data.local.entity.Friend
 import com.example.splitbill.navigation.AddEventRoute
-import com.example.splitbill.ui.Screens.AddBillScreen.AddBillIntent
 
 
 @Composable
@@ -95,22 +86,29 @@ fun MainScreen(
         }
 
         if (state.addFriendDialog) {
-
                 AddFriendDialog(
                     name = state.friendName,
                     onNameChange = { viewModel.handleIntent(MainIntent.OnNewFriendNameChange(it)) },
                     onAddClick = { viewModel.handleIntent(MainIntent.AddFriend) },
                     onCancelClick = { viewModel.handleIntent(MainIntent.CloseAddFriendDialog) },
-                    onDismissRequest = { viewModel.handleIntent(MainIntent.CloseAddFriendDialog) }
+                    onDismissRequest = { viewModel.handleIntent(MainIntent.CloseAddFriendDialog) },
                 )
-
+        } else if (state.editFriendDialog) {
+                AddFriendDialog(
+                    name = state.friendName,
+                    onNameChange = { viewModel.handleIntent(MainIntent.OnNewFriendNameChange(it)) },
+                    onAddClick = { viewModel.handleIntent(MainIntent.EditFriend(state.editingFriendId, state.friendName))},
+                    onCancelClick = { viewModel.handleIntent(MainIntent.CloseEditFriendDialog) },
+                    onDismissRequest = { viewModel.handleIntent(MainIntent.CloseEditFriendDialog) },
+                    isEditMode = true
+                )
         }
+
 
         Column(
             modifier = Modifier
                 .background(color = Color(0xFFE0E0E0))
                 .fillMaxSize()
-
         ) {
             Text(
                 text = "Home",
@@ -151,7 +149,10 @@ fun MainScreen(
                 )
 
                 ScrollingGrid(
-                    friends = state.friends.map { it.name }
+                    friends = state.friends,
+                    onFriendClick = { friend ->
+                        viewModel.handleIntent(MainIntent.OpenEditFriendDialog(friend))
+                    }
                 )
 
                 MyAppButton(
@@ -163,17 +164,8 @@ fun MainScreen(
                     onClick = { viewModel.handleIntent(MainIntent.OpenAddFriendDialog) }
                 )
             }
-
         }
-
-
     }
-
-
-
-
-
-
 }
 
 /*@Preview
@@ -182,16 +174,15 @@ fun MainScreenPreview() {
     MainScreen()
 }*/
 
-
-
 @Composable
 fun AddFriendDialog(
     name: String,
     onNameChange: (String) -> Unit,
     onAddClick: () -> Unit,
     onCancelClick: () -> Unit,
-    onDismissRequest: () -> Unit
-
+    onDeleteClick: (() -> Unit)? = null,
+    onDismissRequest: () -> Unit,
+    isEditMode: Boolean = false,
     ) {
     Dialog(onDismissRequest = onDismissRequest) {
         Box(
@@ -232,28 +223,26 @@ fun AddFriendDialog(
                         onClick = onAddClick,
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
                     ) {
-                        Text("Add", color = Color.White)
+
+                        Text( if (isEditMode) "Save" else "Add", color = Color.White)
                     }
 
                     Button(
                         onClick = onCancelClick,
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                     ) {
-                        Text("Cancel", color = Color.White)
+                        Text( if (isEditMode) "Delete" else "Cancel", color = Color.White)
                     }
                 }
             }
         }
     }
-
 }
-
-
 @Composable
 fun ScrollingGrid(
-    friends: List<String>
+    friends: List<Friend>,
+    onFriendClick: (Friend) -> Unit
 ) {
-
     LazyHorizontalGrid(
         rows = GridCells.Fixed(2),
         modifier = Modifier
@@ -262,18 +251,14 @@ fun ScrollingGrid(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        friends.forEach { friend ->
-            item {
-                FriendBox(
-                    name = friend,
-                )
-            }
+        items(friends) { friend ->
+            FriendBox(
+                name = friend.name,
+                onClick = { onFriendClick(friend) }
+            )
         }
-
     }
 }
-
-
 
 @Composable
 fun HorizontalCardRow(bills: List<BillWithParticipantCount>) {
@@ -336,6 +321,7 @@ fun BillBoxPreview() {
 @Composable
 fun FriendBox(
     name: String,
+    onClick: () -> Unit,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -349,6 +335,7 @@ fun FriendBox(
             .clip(RoundedCornerShape(16.dp))
             .background(color = Color(0xFFE0E0E0))
             .padding(10.dp)
+            .clickable {onClick()},
     ) {
         Image(
             painter = painterResource(id = R.drawable.icons8_user),
@@ -369,11 +356,10 @@ fun FriendBox(
 @Composable
 fun previewFriendBox() {
     FriendBox(
-        name = "John Doe"
+        name = "John Doe",
+        onClick = {}
     )
 }
-
-
 
 /*@Preview
 @Composable
