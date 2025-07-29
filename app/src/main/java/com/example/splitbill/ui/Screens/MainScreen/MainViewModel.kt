@@ -34,34 +34,70 @@ class MainViewModel @Inject constructor(
 
     fun handleIntent(intent: MainIntent) {
         when (intent) {
-            is MainIntent.AddFriend -> addFriend()
+            MainIntent.AddFriend -> addFriend()
             MainIntent.CloseAddFriendDialog -> closeAddFriendDialog()
             MainIntent.OpenAddFriendDialog -> openAddFriendDialog()
-            is MainIntent.OnAddBillClicked -> onAddBillClicked()
-            is MainIntent.OnNewFriendNameChange -> onNewFriendNameChange(intent.name)
+            MainIntent.OnAddBillClicked -> onAddBillClicked()
             MainIntent.FetchFriends -> fetchFriends()
             MainIntent.FetchBills -> fetchBillsWithParticipants()
-
-
-            MainIntent.CloseEditFriendDialog -> TODO()
-            is MainIntent.DeleteFriend -> TODO()
+            MainIntent.CloseEditFriendDialog -> closeEditFriendDialog()
+            is MainIntent.OnNewFriendNameChange -> onNewFriendNameChange(intent.name)
+            is MainIntent.DeleteFriend -> deleteFriend(intent.friend)
             is MainIntent.EditFriend -> editFriendName(intent.id, intent.newName)
-            MainIntent.LoadAll -> TODO()
             is MainIntent.OpenEditFriendDialog -> openEditFriendDialog(intent.friend)
         }
     }
 
-
-    fun editFriendName(id: Long?, newName: String) {
-
+    private fun addFriend() {
         viewModelScope.launch {
 
             _state.value = _state.value.copy(isLoading = true)
 
             try {
+                val friend = Friend(name = _state.value.friendName)
+                friendRepository.upsertFriend(friend)
+
+                _state.value = _state.value.copy(isLoading = false, addFriendDialog = false)
+
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Error saving friend", e)
+
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Unknown error"
+                )
+            }
+        }
+    }
+
+    fun deleteFriend(friend: Friend) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
+
+            try {
+                friendRepository.deleteFriend(friend)
+
+                _state.value = _state.value.copy(isLoading = false, editFriendDialog = false)
+
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Error deleting friend", e)
+
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Unknown error"
+                )
+            }
+        }
+    }
+
+    fun editFriendName(id: Long?, newName: String) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
+
+            try {
                 friendRepository.updateFriendName(id, newName)
 
-                _state.value = MainUiState(isLoading = false)
+                _state.value = _state.value.copy(isLoading = false, editFriendDialog = false)
 
             } catch (e: Exception) {
                 Log.e("MainViewModel", "Error editing friend", e)
@@ -74,26 +110,28 @@ class MainViewModel @Inject constructor(
         }
     }
 
-
     fun fetchBillsWithParticipants() {
         viewModelScope.launch {
-            combine(
-                billRepository.allBills(),
-                billParticipantRepository.getAllParticipants()
-            ) { bills, participants ->
-                val countMap = participants.groupingBy { it.billId }.eachCount()
-                bills.map { bill ->
-                    BillWithParticipantCount(
-                        id = bill.id,
-                        title = bill.title,
-                        createdAt = bill.createdAt,
-                        participantCount = countMap[bill.id] ?: 0
-                    )
+            try {
+                combine(
+                    billRepository.allBills(),
+                    billParticipantRepository.getAllParticipants()
+                ) { bills, participants ->
+                    val countMap = participants.groupingBy { it.billId }.eachCount()
+                    bills.map { bill ->
+                        BillWithParticipantCount(
+                            id = bill.id,
+                            title = bill.title,
+                            createdAt = bill.createdAt,
+                            participantCount = countMap[bill.id] ?: 0
+                        )
+                    }
+                }.collect { billsWithCount ->
+                    _state.value = _state.value.copy(bills = billsWithCount)
                 }
-            }.collect { billsWithCount ->
-                _state.value = _state.value.copy(
-                    bills = billsWithCount
-                )
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Error fetching bills", e)
+                _state.value = _state.value.copy(error = e.message ?: "Unknown error")
             }
         }
     }
@@ -101,7 +139,7 @@ class MainViewModel @Inject constructor(
     fun fetchFriends() {
         viewModelScope.launch {
             try {
-                val friends = friendRepository.getFriends().collectLatest { friendList ->
+                friendRepository.getFriends().collectLatest { friendList ->
                     _state.value = _state.value.copy(
                         friends = friendList,
                         isLoading = false,
@@ -127,58 +165,17 @@ class MainViewModel @Inject constructor(
     }
 
     private fun closeAddFriendDialog() {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(
-                addFriendDialog = false,
-            )
-        }
+            _state.value = _state.value.copy(addFriendDialog = false)
     }
 
     private fun closeEditFriendDialog() {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(
-                editFriendDialog = false,
-            )
-        }
+            _state.value = _state.value.copy(editFriendDialog = false,)
     }
 
     private fun openEditFriendDialog(friend: Friend) {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(
-                editFriendDialog = true,
-                friendName = friend.name,
-                editingFriendId = friend.id
-            )
-        }
+            _state.value = _state.value.copy( editFriendDialog = true, friendName = friend.name, editingFriendId = friend.id)
     }
     private fun openAddFriendDialog() {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(
-                addFriendDialog = true,
-                friendName = ""
-            )
-        }
-    }
-
-    private fun addFriend() {
-        viewModelScope.launch {
-
-            _state.value = _state.value.copy(isLoading = true)
-
-            try {
-                val friend = Friend(name = _state.value.friendName)
-                friendRepository.upsertFriend(friend)
-
-                _state.value = MainUiState(isLoading = false)
-
-            } catch (e: Exception) {
-                Log.e("MainViewModel", "Error saving friend", e)
-
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = e.message ?: "Unknown error"
-                )
-            }
-        }
+            _state.value = _state.value.copy(addFriendDialog = true, friendName = "")
     }
 }

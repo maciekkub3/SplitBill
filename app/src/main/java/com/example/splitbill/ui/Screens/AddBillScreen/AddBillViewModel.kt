@@ -7,7 +7,9 @@ import com.example.splitbill.data.local.entity.Bill
 import com.example.splitbill.data.repository.BillRepository
 import com.example.splitbill.data.repository.FriendRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -21,6 +23,9 @@ class AddBillViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(AddBillUiState())
     val state: StateFlow<AddBillUiState> = _state
+
+    private val _effect = MutableSharedFlow<AddBillEffect>()
+    val effect: SharedFlow<AddBillEffect> = _effect
 
     fun handleIntent(intent: AddBillIntent) {
         when (intent) {
@@ -73,8 +78,8 @@ class AddBillViewModel @Inject constructor(
                 val bill = Bill(title = _state.value.title)
                 val participants = _state.value.selectedFriendIds
                 billRepository.insertBillAndParticipants(bill, participants.toList())
+                _effect.emit(AddBillEffect.NavigateToBillScreen)
 
-                _state.value = AddBillUiState(saveSuccess = true)
 
             } catch (e: Exception) {
                 Log.e("AddBillViewModel", "Error saving bill", e)

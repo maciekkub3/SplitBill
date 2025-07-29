@@ -37,9 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.splitbill.data.local.entity.Friend
+import com.example.splitbill.navigation.HomeRoute
 import com.example.splitbill.ui.Screens.AddBillScreen.AddBillIntent.EnterTitle
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.forEach
+
 
 @Composable
 fun AddBillScreen(
@@ -50,6 +50,12 @@ fun AddBillScreen(
 
     LaunchedEffect(Unit) {
         viewModel.handleIntent(AddBillIntent.FetchFriends)
+
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                AddBillEffect.NavigateToBillScreen -> navController.navigate(HomeRoute)
+            }
+        }
     }
 
     Column(modifier = Modifier

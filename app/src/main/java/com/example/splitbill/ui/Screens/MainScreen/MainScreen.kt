@@ -98,7 +98,7 @@ fun MainScreen(
                     name = state.friendName,
                     onNameChange = { viewModel.handleIntent(MainIntent.OnNewFriendNameChange(it)) },
                     onAddClick = { viewModel.handleIntent(MainIntent.EditFriend(state.editingFriendId, state.friendName))},
-                    onCancelClick = { viewModel.handleIntent(MainIntent.CloseEditFriendDialog) },
+                    onCancelClick = { viewModel.handleIntent(MainIntent.DeleteFriend(Friend(state.editingFriendId!!, state.friendName))) },
                     onDismissRequest = { viewModel.handleIntent(MainIntent.CloseEditFriendDialog) },
                     isEditMode = true
                 )
@@ -180,7 +180,6 @@ fun AddFriendDialog(
     onNameChange: (String) -> Unit,
     onAddClick: () -> Unit,
     onCancelClick: () -> Unit,
-    onDeleteClick: (() -> Unit)? = null,
     onDismissRequest: () -> Unit,
     isEditMode: Boolean = false,
     ) {

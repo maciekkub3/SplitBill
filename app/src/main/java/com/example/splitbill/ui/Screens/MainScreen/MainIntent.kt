@@ -3,9 +3,6 @@ package com.example.splitbill.ui.Screens.MainScreen
 import com.example.splitbill.data.local.entity.Friend
 
 sealed class MainIntent {
-    object LoadAll : MainIntent()
-
-
 
     object AddFriend : MainIntent()
     data class EditFriend(val id: Long?, val newName: String) : MainIntent()
