@@ -7,6 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.splitbill.ui.Screens.AddBillScreen.AddBillScreen
 import com.example.splitbill.ui.Screens.AddBillScreen.AddBillViewModel
+import com.example.splitbill.ui.Screens.BillScreen.BillScreen
+import com.example.splitbill.ui.Screens.BillScreen.BillViewModel
 import com.example.splitbill.ui.Screens.MainScreen.MainScreen
 import com.example.splitbill.ui.Screens.MainScreen.MainViewModel
 
@@ -35,7 +37,14 @@ fun Navigation(
             )
         }
         composable<EventRoute> {
-            // EventScreen(navController = navController)
+            val viewModel : BillViewModel = hiltViewModel()
+            val billId = it.arguments?.getLong("billId")
+                ?: throw IllegalArgumentException("billId is required")
+            BillScreen(
+                navController = navController,
+                viewModel = viewModel,
+                billId = billId
+            )
         }
     }
 }

@@ -14,7 +14,9 @@ class FriendRepository @Inject constructor(
 
     suspend fun deleteFriend(friend: Friend) = friendDao.deleteFriend(friend)
 
-    suspend fun getFriendById(id: Int): Friend? = friendDao.getFriendById(id)
+    suspend fun getFriendById(id: Long): Friend? = friendDao.getFriendById(id)
 
     suspend fun updateFriendName(id: Long?, newName: String) = friendDao.updateFriendName(id, newName)
+
+    suspend fun getFriendsByIds(ids: List<Long>): List<Friend> = friendDao.getFriendsByIds(ids)
 }

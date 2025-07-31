@@ -20,10 +20,13 @@ interface FriendDao {
     fun getFriends(): Flow<List<Friend>>
 
     @Query("SELECT * FROM Friend WHERE id = :id LIMIT 1")
-    suspend fun getFriendById(id: Int): Friend?
+    suspend fun getFriendById(id: Long): Friend?
+
+    @Query("SELECT * FROM Friend WHERE id IN (:ids)")
+    suspend fun getFriendsByIds(ids: List<Long>): List<Friend>
 
     @Query("UPDATE Friend SET name = :newName WHERE id = :id")
-        suspend fun updateFriendName(id: Long?, newName: String)
+    suspend fun updateFriendName(id: Long?, newName: String)
 
 
 }
