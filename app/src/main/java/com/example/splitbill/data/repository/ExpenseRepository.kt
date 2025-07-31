@@ -3,7 +3,6 @@ package com.example.splitbill.data.repository
 import com.example.splitbill.data.classes.BillExpenseSum
 import com.example.splitbill.data.local.dao.ExpenseDao
 import com.example.splitbill.data.local.entity.Expense
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class ExpenseRepository @Inject constructor(

@@ -2,7 +2,6 @@ package com.example.splitbill.ui.Screens.MainScreen
 
 import android.annotation.SuppressLint
 import android.util.Log
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -43,10 +42,9 @@ import com.example.splitbill.R
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -347,7 +345,7 @@ fun BillBox(bill: BillWithParticipantCount, onBillClick: (Long) -> Unit) {
             .padding(top = 8.dp, bottom = 8.dp, start = 16.dp),
         ) {
             Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "Arrow",
                 modifier = Modifier
                     .size(50.dp)
@@ -449,7 +447,7 @@ fun FriendBox(
 
 @Preview
 @Composable
-fun previewFriendBox() {
+fun PreviewFriendBox() {
     FriendBox(
         name = "John Doe",
         onClick = {}

@@ -6,7 +6,6 @@ import androidx.room.Query
 import androidx.room.Upsert
 import com.example.splitbill.data.classes.BillExpenseSum
 import com.example.splitbill.data.local.entity.Expense
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExpenseDao {

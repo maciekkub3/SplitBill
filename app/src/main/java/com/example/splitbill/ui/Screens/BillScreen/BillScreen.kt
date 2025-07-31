@@ -1,7 +1,6 @@
 package com.example.splitbill.ui.Screens.BillScreen
 
 import android.annotation.SuppressLint
-import android.util.Log.e
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,7 +49,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.text.style.TextAlign
 import com.example.splitbill.navigation.HomeRoute
 
 
