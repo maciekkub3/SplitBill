@@ -137,7 +137,7 @@ fun BillScreen(
     }
 
     if (state.showDeleteDialog) {
-        deleteDialog(
+        DeleteDialog(
             onDismissRequest = { onEvent(BillIntent.DismissDeleteDialog) },
             onConfirm = {
                 onEvent(BillIntent.DeleteBill)
@@ -471,7 +471,7 @@ fun WhoPaidDropdown(
 }
 
 @Composable
-fun deleteDialog(
+fun DeleteDialog(
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
     title: String,

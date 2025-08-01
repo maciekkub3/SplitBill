@@ -1,7 +1,6 @@
 package com.example.splitbill.ui.screens.addBillScreen
 
 import android.util.Log
-import android.util.Log.e
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.splitbill.data.local.entity.Bill
@@ -41,7 +40,7 @@ class AddBillViewModel @Inject constructor(
     private fun fetchFriends() {
         viewModelScope.launch {
             try {
-                val friends = friendRepository.getFriends().collectLatest { friendList ->
+                friendRepository.getFriends().collectLatest { friendList ->
                     _state.update {
                         it.copy(
                             friends = friendList,
@@ -51,7 +50,6 @@ class AddBillViewModel @Inject constructor(
                 }
 
             } catch (e: Exception) {
-                Log.e("AddBillViewModel", "Error fetching friends", e)
                 _state.update { it.copy(error = e.message ?: "Unknown error") }
             }
         }
@@ -88,8 +86,6 @@ class AddBillViewModel @Inject constructor(
 
 
             } catch (e: Exception) {
-                Log.e("AddBillViewModel", "Error saving bill", e)
-
                 _state.update { it.copy(
                     isLoading = false,
                     error = e.message ?: "Unknown error"
