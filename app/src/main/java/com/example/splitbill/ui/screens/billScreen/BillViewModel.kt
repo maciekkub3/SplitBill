@@ -1,4 +1,4 @@
-package com.example.splitbill.ui.Screens.BillScreen
+package com.example.splitbill.ui.screens.billScreen
 
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
@@ -15,6 +15,7 @@ import com.example.splitbill.navigation.EventRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -46,21 +47,21 @@ class BillViewModel @Inject constructor(
             is BillIntent.DescriptionChange -> descriptionChange(intent.description)
             is BillIntent.PayerChange -> payerChange(intent.payer)
             is BillIntent.DeleteBill -> deleteBill()
+            BillIntent.DismissDeleteDialog -> dismissDeleteDialog()
+            BillIntent.ShowDeleteDialog -> showDeleteDialog()
         }
     }
 
-    fun deleteBill() {
+    private fun deleteBill() {
         viewModelScope.launch {
             try {
                 billRepository.deleteBill(_state.value.bill ?: return@launch)
-                _state.value = _state.value.copy(bill = null, expenses = emptyList(), friends = emptyList())
+                dismissDeleteDialog()
             } catch (e: Exception) {
                 Log.e("BillViewModel", "Error deleting bill: ${e.message}")
             }
         }
     }
-
-    fun dismissSettlementDialog() { _state.value = _state.value.copy(showSettleUpDialog = false, settlementResult = emptyList()) }
 
     private fun calculateSettlement() {
         val expenses = _state.value.expenses
@@ -130,14 +131,16 @@ class BillViewModel @Inject constructor(
             Log.w("BillViewModel", "Settlement calculation stopped early after $maxIterations iterations")
         }
 
-        _state.value = _state.value.copy(
-            settlementResult = result,
-            showSettleUpDialog = true
-        )
+        _state.update {
+            it.copy(
+                settlementResult = result,
+                showSettleUpDialog = true
+            )
+        }
     }
 
 
-    fun addExpense(description: String,amount: Double,paidById: Long) {
+    private fun addExpense(description: String,amount: Double,paidById: Long) {
         viewModelScope.launch {
             try {
                 expenseRepository.upsertExpense(
@@ -148,7 +151,9 @@ class BillViewModel @Inject constructor(
                         billId = args.billId
                     )
                 )
-                _state.value = _state.value.copy(showAddExpenseDialog = false, description = "", amount = "", payer = null)
+                _state.update {
+                    it.copy(showAddExpenseDialog = false, description = "", amount = "", payer = null)
+                }
                 fetchBillWithParticipantsAndExpenses(args.billId)
             } catch (e: Exception) {
                 Log.e("BillViewModel", "Error adding expense: ${e.message}")
@@ -156,21 +161,7 @@ class BillViewModel @Inject constructor(
         }
     }
 
-    fun amountChange(amount: String) { _state.value = _state.value.copy(amount = amount) }
-
-    fun descriptionChange(description: String) { _state.value = _state.value.copy(description = description) }
-
-    fun payerChange(payer: Friend?) { _state.value = _state.value.copy(payer = payer) }
-
-    fun showAddExpenseDialog() { _state.value = _state.value.copy(showAddExpenseDialog = true, description = "", amount = "", payer = null) }
-
-    fun dismissAddExpenseDialog() { _state.value = _state.value.copy(showAddExpenseDialog = false) }
-
-    fun showEditExpenseDialog() { _state.value = _state.value.copy(showEditExpenseDialog = true) }
-
-    fun dismissEditExpenseDialog() { _state.value = _state.value.copy(showEditExpenseDialog = false) }
-
-    fun fetchBillWithParticipantsAndExpenses(billId: Long) {
+    private fun fetchBillWithParticipantsAndExpenses(billId: Long) {
         viewModelScope.launch {
             try {
                 val bill = billRepository.getById(billId)
@@ -182,12 +173,14 @@ class BillViewModel @Inject constructor(
                     val allFriends = friendRepository.getFriendsByIds(friendIds)
                     val totalAmount = expenses.sumOf { it.amount }
 
-                    _state.value = _state.value.copy(
-                        bill = bill,
-                        friends = allFriends,
-                        expenses = expenses,
-                        totalAmount = totalAmount,
-                    )
+                    _state.update {
+                        it.copy(
+                            bill = bill,
+                            friends = allFriends,
+                            expenses = expenses,
+                            totalAmount = totalAmount,
+                        )
+                    }
                 } else {
                     Log.e("BillViewModel", "Bill with ID $billId not found")
                 }
@@ -195,5 +188,45 @@ class BillViewModel @Inject constructor(
                 Log.e("BillViewModel", "Error fetching bill data: ${e.message}")
             }
         }
+    }
+
+    private fun amountChange(amount: String) {
+        _state.update { it.copy(amount = amount) }
+    }
+
+    private fun descriptionChange(description: String) {
+        _state.update { it.copy(description = description) }
+    }
+
+    private fun payerChange(payer: Friend?) {
+        _state.update { it.copy(payer = payer) }
+    }
+
+    private fun showAddExpenseDialog() {
+        _state.update { it.copy(showAddExpenseDialog = true, description = "", amount = "", payer = null) }
+    }
+
+    private fun dismissAddExpenseDialog() {
+        _state.update { it.copy(showAddExpenseDialog = false) }
+    }
+
+    private fun showEditExpenseDialog() {
+        _state.update { it.copy(showEditExpenseDialog = true) }
+    }
+
+    private fun dismissEditExpenseDialog() {
+        _state.update { it.copy(showEditExpenseDialog = false) }
+    }
+
+    private fun showDeleteDialog() {
+        _state.update { it.copy(showDeleteDialog = true) }
+    }
+
+    private fun dismissDeleteDialog() {
+        _state.update { it.copy(showDeleteDialog = false) }
+    }
+
+    private fun dismissSettlementDialog() {
+        _state.update { it.copy(showSettleUpDialog = false, settlementResult = emptyList()) }
     }
 }

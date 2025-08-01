@@ -1,4 +1,4 @@
-package com.example.splitbill.ui.Screens.BillScreen
+package com.example.splitbill.ui.screens.billScreen
 
 import com.example.splitbill.data.local.entity.Friend
 
@@ -15,4 +15,6 @@ sealed class  BillIntent {
     data class AmountChange(val amount: String) : BillIntent()
     data class PayerChange(val payer: Friend?) : BillIntent()
     object DeleteBill : BillIntent()
+    object ShowDeleteDialog : BillIntent()
+    object DismissDeleteDialog : BillIntent()
 }

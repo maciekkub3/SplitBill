@@ -9,7 +9,7 @@ import javax.inject.Inject
 class BillRepository @Inject constructor(
     private val billDao: BillDao
 ) {
-    suspend fun allBills(): Flow<List<Bill>> = billDao.getAllBills()
+    fun allBills(): Flow<List<Bill>> = billDao.getAllBills()
 
     suspend fun upsertBill(bill: Bill) = billDao.upsertBill(bill)
 

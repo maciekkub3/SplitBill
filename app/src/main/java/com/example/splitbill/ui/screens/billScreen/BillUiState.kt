@@ -1,4 +1,4 @@
-package com.example.splitbill.ui.Screens.BillScreen
+package com.example.splitbill.ui.screens.billScreen
 
 import com.example.splitbill.data.local.entity.Bill
 import com.example.splitbill.data.local.entity.BillParticipant
@@ -20,6 +20,7 @@ data class BillUiState(
     val payer: Friend? = null,
     val description: String = "",
     val amount: String = "",
+    val showDeleteDialog: Boolean = false
 )
 data class SettlementEntry(
     val from: String,

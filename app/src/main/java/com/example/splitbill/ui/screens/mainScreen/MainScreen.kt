@@ -1,7 +1,6 @@
-package com.example.splitbill.ui.Screens.MainScreen
+package com.example.splitbill.ui.screens.mainScreen
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,7 +43,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -64,11 +62,11 @@ import com.example.splitbill.navigation.AddEventRoute
 import com.example.splitbill.navigation.EventRoute
 
 @Composable
-fun MainScreen(
-    modifier: Modifier = Modifier,
+fun MainScreenRoot(
     viewModel: MainViewModel,
     navController: NavController,
-    ) {
+) {
+    val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.handleIntent(MainIntent.FetchFriends)
@@ -83,10 +81,22 @@ fun MainScreen(
         }
     }
 
-    val state by viewModel.state.collectAsState()
-
+    MainScreen(
+        state = state,
+        onEvent = viewModel::handleIntent,
+        onBillClick = { billId ->
+            navController.navigate(EventRoute(billId))
+        }
+    )
+}
+@Composable
+fun MainScreen(
+    state: MainUiState,
+    onEvent: (MainIntent) -> Unit,
+    onBillClick: (Long) -> Unit,
+    ) {
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         if (state.isLoading) {
@@ -96,18 +106,18 @@ fun MainScreen(
         if (state.addFriendDialog) {
                 AddFriendDialog(
                     name = state.friendName,
-                    onNameChange = { viewModel.handleIntent(MainIntent.OnNewFriendNameChange(it)) },
-                    onAddClick = { viewModel.handleIntent(MainIntent.AddFriend) },
-                    onCancelClick = { viewModel.handleIntent(MainIntent.CloseAddFriendDialog) },
-                    onDismissRequest = { viewModel.handleIntent(MainIntent.CloseAddFriendDialog) },
+                    onNameChange = { onEvent(MainIntent.OnNewFriendNameChange(it)) },
+                    onAddClick = { onEvent(MainIntent.AddFriend) },
+                    onCancelClick = { onEvent(MainIntent.CloseAddFriendDialog) },
+                    onDismissRequest = { onEvent(MainIntent.CloseAddFriendDialog) },
                 )
         } else if (state.editFriendDialog) {
                 AddFriendDialog(
                     name = state.friendName,
-                    onNameChange = { viewModel.handleIntent(MainIntent.OnNewFriendNameChange(it)) },
-                    onAddClick = { viewModel.handleIntent(MainIntent.EditFriend(state.editingFriendId, state.friendName))},
-                    onCancelClick = { viewModel.handleIntent(MainIntent.DeleteFriend(Friend(state.editingFriendId!!, state.friendName))) },
-                    onDismissRequest = { viewModel.handleIntent(MainIntent.CloseEditFriendDialog) },
+                    onNameChange = { onEvent(MainIntent.OnNewFriendNameChange(it)) },
+                    onAddClick = { onEvent(MainIntent.EditFriend(state.editingFriendId, state.friendName))},
+                    onCancelClick = { onEvent(MainIntent.DeleteFriend(Friend(state.editingFriendId!!, state.friendName))) },
+                    onDismissRequest = { onEvent(MainIntent.CloseEditFriendDialog) },
                     isEditMode = true
                 )
         }
@@ -126,12 +136,9 @@ fun MainScreen(
 
             HorizontalCardRow(
                 bills = state.bills,
-                onBillClick = { billId ->
-                    navController.navigate(EventRoute(billId))
-                    Log.d("MainScreen", "Bill ID: $billId")
-                },
+                onBillClick = onBillClick,
                 onAddBillClick = {
-                    viewModel.handleIntent(MainIntent.OnAddBillClicked)
+                    onEvent(MainIntent.OnAddBillClicked)
                 }
             )
 
@@ -153,7 +160,7 @@ fun MainScreen(
                 ScrollingGrid(
                     friends = state.friends,
                     onFriendClick = { friend ->
-                        viewModel.handleIntent(MainIntent.OpenEditFriendDialog(friend))
+                        onEvent(MainIntent.OpenEditFriendDialog(friend))
                     }
                 )
 
@@ -163,7 +170,7 @@ fun MainScreen(
                         .padding(16.dp)
                         .height(50.dp),
                     text = "Add Friend",
-                    onClick = { viewModel.handleIntent(MainIntent.OpenAddFriendDialog) }
+                    onClick = { onEvent(MainIntent.OpenAddFriendDialog) }
                 )
             }
         }
@@ -454,11 +461,23 @@ fun PreviewFriendBox() {
     )
 }
 
-/*@Preview
+@Preview
 @Composable
-fun previewBillBox() {
-    BillBox(
-        value = 100.0,
-        participants = 5
+fun MainScreenPreview() {
+    MainScreen(
+        state = MainUiState(
+            isLoading = false,
+            bills = listOf(
+                BillWithParticipantCount(1L, "Dinner", System.currentTimeMillis(), 3, 100.0),
+                BillWithParticipantCount(2L, "Lunch", System.currentTimeMillis(), 2, 50.0)
+            ),
+            friends = listOf(Friend(1L, "Alice"), Friend(2L, "Bob")),
+            addFriendDialog = false,
+            editFriendDialog = false,
+            friendName = "",
+            editingFriendId = null
+        ),
+        onEvent = {},
+        onBillClick = {}
     )
-}*/
+}

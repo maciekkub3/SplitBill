@@ -1,4 +1,4 @@
-package com.example.splitbill.ui.Screens.AddBillScreen
+package com.example.splitbill.ui.screens.addBillScreen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -33,19 +33,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.splitbill.data.local.entity.Friend
 import com.example.splitbill.navigation.HomeRoute
-import com.example.splitbill.ui.Screens.AddBillScreen.AddBillIntent.EnterTitle
-
+import com.example.splitbill.ui.screens.addBillScreen.AddBillIntent.EnterTitle
 
 @Composable
-fun AddBillScreen(
+fun AddBillScreenRoot(
     viewModel: AddBillViewModel,
     navController: NavController
 ) {
+
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -58,6 +59,16 @@ fun AddBillScreen(
         }
     }
 
+    AddBillScreen(
+        state = state,
+        onEvent = viewModel::handleIntent
+    )
+}
+@Composable
+fun AddBillScreen(
+    state: AddBillUiState,
+    onEvent: (AddBillIntent) -> Unit,
+) {
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(16.dp),
@@ -70,7 +81,7 @@ fun AddBillScreen(
 
         TextField(
             value = state.title,
-            onValueChange = { viewModel.handleIntent(EnterTitle(it)) },
+            onValueChange = { onEvent(EnterTitle(it)) },
             label = { Text("Bill Name") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -81,11 +92,11 @@ fun AddBillScreen(
             friends = state.friends,
             selectedFriends = state.selectedFriendIds,
             onFriendSelected = { friend ->
-                viewModel.handleIntent(AddBillIntent.ToggleParticipant(friend.id))
+                onEvent(AddBillIntent.ToggleParticipant(friend.id))
             }
         )
 
-        Button(onClick = { viewModel.handleIntent(AddBillIntent.SaveBill) }) {
+        Button(onClick = { onEvent(AddBillIntent.SaveBill) }) {
             Text(text = "Save Bill")
         }
     }
@@ -180,5 +191,24 @@ fun FriendItem(
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun AddBillScreenPreview() {
+    val sampleFriends = listOf(
+        Friend(id = 1, name = "Alice", avatarUri = null),
+        Friend(id = 2, name = "Bob", avatarUri = null),
+        Friend(id = 3, name = "Charlie", avatarUri = null)
+    )
+
+    AddBillScreen(
+        state = AddBillUiState(
+            title = "Wakacje",
+            friends = sampleFriends,
+            selectedFriendIds = setOf(1, 2)
+        ),
+        onEvent = {}
+    )
 }
 

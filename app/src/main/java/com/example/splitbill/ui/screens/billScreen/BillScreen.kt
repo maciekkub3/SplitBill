@@ -1,4 +1,4 @@
-package com.example.splitbill.ui.Screens.BillScreen
+package com.example.splitbill.ui.screens.billScreen
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
@@ -49,40 +49,59 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.splitbill.data.local.entity.Bill
+import com.example.splitbill.data.local.entity.Expense
 import com.example.splitbill.navigation.HomeRoute
+import java.text.SimpleDateFormat
+import java.util.Date
 
 
-@SuppressLint("SimpleDateFormat")
 @Composable
-fun BillScreen(
-    modifier: Modifier = Modifier,
+fun BillScreenRoot(
+    billId: Long,
     navController: NavController,
-    viewModel: BillViewModel,
-    billId: Long
-    ) {
-
+    viewModel: BillViewModel
+) {
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.handleIntent(BillIntent.LoadBill(billId))
     }
 
+    BillScreen(
+        state = state,
+        onEvent = viewModel::handleIntent,
+        onNavigateHome = {
+            navController.navigate(HomeRoute)
+        }
+    )
+}
+
+@SuppressLint("SimpleDateFormat")
+@Composable
+fun BillScreen(
+    state: BillUiState,
+    onEvent: (BillIntent) -> Unit,
+    onNavigateHome: () -> Unit,
+    ) {
     if (state.showAddExpenseDialog){
         AddExpenseDialog(
             payer = state.payer,
             options = state.friends,
             description = state.description,
             amount = state.amount,
-            onDescriptionChange = { viewModel.handleIntent(BillIntent.DescriptionChange(it)) },
-            onPayerChange = { viewModel.handleIntent(BillIntent.PayerChange(it)) },
-            onAmountChange = { viewModel.handleIntent(BillIntent.AmountChange(it)) },
-            onAddClick = { viewModel.handleIntent(BillIntent.AddExpense(
+            onDescriptionChange = { onEvent(BillIntent.DescriptionChange(it)) },
+            onPayerChange = { onEvent(BillIntent.PayerChange(it)) },
+            onAmountChange = { onEvent(BillIntent.AmountChange(it)) },
+            onAddClick = { onEvent(BillIntent.AddExpense(
                 description = state.description,
                 amount = state.amount.toDoubleOrNull() ?: 0.0,
                 paidById = state.payer?.id ?: 0L
             )) },
-            onCancelClick = { viewModel.handleIntent(BillIntent.DismissAddExpenseDialog) },
-            onDismissRequest = { viewModel.handleIntent(BillIntent.DismissAddExpenseDialog) },
+            onCancelClick = { onEvent(BillIntent.DismissAddExpenseDialog) },
+            onDismissRequest = { onEvent(BillIntent.DismissAddExpenseDialog) },
         )
     }
 
@@ -93,12 +112,12 @@ fun BillScreen(
             description = state.description,
             amount = state.amount,
             isEditMode = true,
-            onDescriptionChange = { viewModel.handleIntent(BillIntent.DescriptionChange(it)) },
-            onPayerChange = { viewModel.handleIntent(BillIntent.PayerChange(it)) },
-            onAmountChange = { viewModel.handleIntent(BillIntent.AmountChange(it)) },
+            onDescriptionChange = { onEvent(BillIntent.DescriptionChange(it)) },
+            onPayerChange = { onEvent(BillIntent.PayerChange(it)) },
+            onAmountChange = { onEvent(BillIntent.AmountChange(it)) },
             onAddClick = {},
-            onCancelClick = { viewModel.handleIntent(BillIntent.DismissEditExpenseDialog) },
-            onDismissRequest = { viewModel.handleIntent(BillIntent.DismissEditExpenseDialog) },
+            onCancelClick = { onEvent(BillIntent.DismissEditExpenseDialog) },
+            onDismissRequest = { onEvent(BillIntent.DismissEditExpenseDialog) },
         )
     }
 
@@ -106,19 +125,33 @@ fun BillScreen(
         SettleUpDialog(
             settlementEntries = state.settlementResult,
             onExitClick = {
-                viewModel.handleIntent(BillIntent.DismissSettlementDialog)
+                onEvent(BillIntent.DismissSettlementDialog)
 
             },
             onCloseBillClick = {
-                viewModel.handleIntent(BillIntent.DeleteBill)
-                navController.navigate(HomeRoute)
+                onEvent(BillIntent.DeleteBill)
+                onNavigateHome()
             },
-            onDismissRequest = { viewModel.handleIntent(BillIntent.DismissSettlementDialog) }
+            onDismissRequest = { onEvent(BillIntent.DismissSettlementDialog) }
+        )
+    }
+
+    if (state.showDeleteDialog) {
+        deleteDialog(
+            onDismissRequest = { onEvent(BillIntent.DismissDeleteDialog) },
+            onConfirm = {
+                onEvent(BillIntent.DeleteBill)
+                onNavigateHome()
+            },
+            title = "Delete Bill",
+            message = "Are you sure you want to delete this bill?",
+            icon = Icons.Default.Clear
         )
     }
 
     Column(modifier = Modifier
         .fillMaxSize()
+        .background(Color.White)
         .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -142,8 +175,8 @@ fun BillScreen(
                         .size(48.dp)
                         .padding(8.dp)
                         .clickable {
-                            viewModel.handleIntent(BillIntent.DeleteBill)
-                            navController.navigate(HomeRoute)
+                            onEvent(BillIntent.ShowDeleteDialog)
+
                         },
                     tint = Color.Red
                 )
@@ -167,7 +200,7 @@ fun BillScreen(
                     ExpenseItem(
                         payerName = state.friends.find { it.id == expense.paidById }?.name ?: "Unknown",
                         description = expense.name,
-                        date = java.text.SimpleDateFormat("dd MMM yyyy").format(java.util.Date(expense.date)),
+                        date = SimpleDateFormat("dd MMM yyyy").format(Date(expense.date)),
                         amount = expense.amount.toString()
                     )
                 }
@@ -179,7 +212,7 @@ fun BillScreen(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(
-                onClick = { viewModel.handleIntent(BillIntent.ShowAddExpenseDialog )},
+                onClick = { onEvent(BillIntent.ShowAddExpenseDialog )},
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan)
             ) {
 
@@ -187,7 +220,7 @@ fun BillScreen(
             }
 
             Button(
-                onClick = { viewModel.handleIntent(BillIntent.CalculateSettlement) },
+                onClick = { onEvent(BillIntent.CalculateSettlement) },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
             ) {
                 Text("Settle Up" , color = Color.White)
@@ -435,4 +468,90 @@ fun WhoPaidDropdown(
             }
         }
     }
+}
+
+@Composable
+fun deleteDialog(
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit,
+    title: String,
+    message: String,
+    icon: ImageVector
+) {
+    Dialog(onDismissRequest = onDismissRequest,) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = Color.Red
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = title, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = message, fontSize = 16.sp)
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(onClick = onDismissRequest) {
+                        Text("Cancel")
+                    }
+                    Button(onClick = onConfirm) {
+                        Text("Confirm")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun BillScreenPreview() {
+    BillScreen(
+        state = BillUiState(
+            bill = Bill(
+                id = 1,
+                title = "Dinner with Friends",
+            ),
+            expenses = listOf(Expense(
+                id = 1,
+                billId = 1,
+                name = "Pizza",
+                amount = 50.00,
+                date = Date().time,
+                paidById = 1
+            ), Expense(
+                id = 2,
+                billId = 1,
+                name = "Drinks",
+                amount = 75.00,
+                date = Date().time,
+                paidById = 2
+            )),
+            totalAmount = 125.00,
+            friends = listOf(Friend(1, "Alice"), Friend(2, "Bob")),
+            payer = null,
+            description = "",
+            amount = "",
+            showAddExpenseDialog = false,
+            showEditExpenseDialog = false,
+            showSettleUpDialog = false,
+            showDeleteDialog = false,
+            settlementResult = emptyList()
+        ),
+        onEvent = {},
+        onNavigateHome = {}
+    )
 }

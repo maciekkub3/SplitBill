@@ -1,6 +1,7 @@
-package com.example.splitbill.ui.Screens.AddBillScreen
+package com.example.splitbill.ui.screens.addBillScreen
 
 import android.util.Log
+import android.util.Log.e
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.splitbill.data.local.entity.Bill
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,43 +38,47 @@ class AddBillViewModel @Inject constructor(
         }
     }
 
-    fun fetchFriends() {
+    private fun fetchFriends() {
         viewModelScope.launch {
             try {
                 val friends = friendRepository.getFriends().collectLatest { friendList ->
-                    _state.value = _state.value.copy(
-                        friends = friendList,
-                        isLoading = false,
-                    )
+                    _state.update {
+                        it.copy(
+                            friends = friendList,
+                            isLoading = false,
+                        )
+                    }
                 }
 
             } catch (e: Exception) {
                 Log.e("AddBillViewModel", "Error fetching friends", e)
-                _state.value = _state.value.copy(error = e.message ?: "Unknown error")
+                _state.update { it.copy(error = e.message ?: "Unknown error") }
             }
         }
     }
 
-    fun toggleParticipant(friendId: Long) {
+    private fun toggleParticipant(friendId: Long) {
         val selectedFriendIds = _state.value.selectedFriendIds.toMutableSet()
         if (selectedFriendIds.contains(friendId)) {
             selectedFriendIds.remove(friendId)
-            _state.value = _state.value.copy(selectedFriendIds = selectedFriendIds)
+            _state.update { it.copy(selectedFriendIds = selectedFriendIds) }
         } else {
             selectedFriendIds.add(friendId)
-            _state.value = _state.value.copy(selectedFriendIds = selectedFriendIds)
+            _state.update { it.copy(selectedFriendIds = selectedFriendIds) }
         }
     }
 
-    fun enterTitle(title: String) {
-        _state.value = _state.value.copy(
-            title = title
-        )
+    private fun enterTitle(title: String) {
+        _state.update {
+            it.copy(
+                title = title
+            )
+        }
     }
     private fun handleSaveBill() {
         viewModelScope.launch {
 
-            _state.value = _state.value.copy(isLoading = true)
+            _state.update { it.copy(isLoading = true) }
 
             try {
                 val bill = Bill(title = _state.value.title)
@@ -84,10 +90,11 @@ class AddBillViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("AddBillViewModel", "Error saving bill", e)
 
-                _state.value = _state.value.copy(
+                _state.update { it.copy(
                     isLoading = false,
                     error = e.message ?: "Unknown error"
                 )
+                    }
             }
         }
     }

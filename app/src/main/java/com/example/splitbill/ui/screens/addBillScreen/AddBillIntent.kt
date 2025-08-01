@@ -1,4 +1,4 @@
-package com.example.splitbill.ui.Screens.AddBillScreen
+package com.example.splitbill.ui.screens.addBillScreen
 
 sealed class AddBillIntent {
     data class EnterTitle(val title: String) : AddBillIntent()

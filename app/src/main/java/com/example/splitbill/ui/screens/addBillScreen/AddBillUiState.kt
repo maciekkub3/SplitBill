@@ -1,4 +1,4 @@
-package com.example.splitbill.ui.Screens.AddBillScreen
+package com.example.splitbill.ui.screens.addBillScreen
 
 import com.example.splitbill.data.local.entity.Friend
 
