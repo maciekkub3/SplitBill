@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
+import com.example.splitbill.data.classes.BillExpenseSum
 import com.example.splitbill.data.local.entity.Expense
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExpenseDao {
@@ -17,7 +17,10 @@ interface ExpenseDao {
     suspend fun deleteExpense(expense: Expense)
 
     @Query("SELECT * FROM Expense WHERE billId = :billId ORDER BY date DESC")
-    fun getExpensesForBill(billId: Long): Flow<List<Expense>>
+    suspend fun getExpensesForBill(billId: Long): List<Expense>
+
+    @Query("SELECT billId, SUM(amount) as totalAmount FROM Expense GROUP BY billId")
+    suspend fun getTotalAmountPerBill(): List<BillExpenseSum>
 
     @Query("SELECT * FROM Expense WHERE id = :id LIMIT 1")
     suspend fun getExpenseById(id: Long): Expense?

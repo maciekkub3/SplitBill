@@ -1,8 +1,10 @@
 package com.example.splitbill.ui.Screens.MainScreen
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
@@ -37,7 +40,11 @@ import androidx.compose.ui.unit.sp
 import com.example.splitbill.ui.components.MyAppButton
 import com.example.splitbill.R
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -47,13 +54,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.splitbill.data.classes.BillWithParticipantCount
 import com.example.splitbill.data.local.entity.Friend
 import com.example.splitbill.navigation.AddEventRoute
-
+import com.example.splitbill.navigation.EventRoute
 
 @Composable
 fun MainScreen(
@@ -104,31 +112,25 @@ fun MainScreen(
                 )
         }
 
-
         Column(
             modifier = Modifier
                 .background(color = Color(0xFFE0E0E0))
                 .fillMaxSize()
         ) {
             Text(
-                text = "Home",
+                text = "Dashboard",
                 fontSize = 40.sp,
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(24.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
 
             HorizontalCardRow(
-                bills = state.bills
-            )
-
-            MyAppButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(50.dp),
-                text = "Add Bill",
-                onClick = {
+                bills = state.bills,
+                onBillClick = { billId ->
+                    navController.navigate(EventRoute(billId))
+                    Log.d("MainScreen", "Bill ID: $billId")
+                },
+                onAddBillClick = {
                     viewModel.handleIntent(MainIntent.OnAddBillClicked)
                 }
             )
@@ -237,6 +239,7 @@ fun AddFriendDialog(
         }
     }
 }
+
 @Composable
 fun ScrollingGrid(
     friends: List<Friend>,
@@ -260,46 +263,134 @@ fun ScrollingGrid(
 }
 
 @Composable
-fun HorizontalCardRow(bills: List<BillWithParticipantCount>) {
+fun HorizontalCardRow(bills: List<BillWithParticipantCount>, onBillClick: (Long) -> Unit, onAddBillClick: () -> Unit) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+
+        item {
+            VerticalAddBillButton(
+                onClick = onAddBillClick
+            )
+        }
+
         items(bills) { bill ->
-            BillBox(bill = bill)
+            BillBox(
+                bill = bill,
+                onBillClick = onBillClick
+            )
         }
     }
 }
 
-@SuppressLint("SimpleDateFormat")
 @Composable
-fun BillBox(bill: BillWithParticipantCount) {
+fun VerticalAddBillButton(onClick: () -> Unit) {
     Card(
-        modifier = Modifier.size(width = 160.dp, height = 120.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-        shape = RoundedCornerShape(12.dp)
+        modifier = Modifier
+            .height(220.dp)
+            .width(80.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Cyan),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxSize().padding(top = 16.dp)
         ) {
             Text(
-                text = bill.title,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                text = "Add Bill",
+                fontSize = 20.sp,
+                color = Color.White,
+                modifier = Modifier.rotate(-90f),
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
             )
-            Text(
-                text = "Created: ${java.text.SimpleDateFormat("dd MMM yyyy").format(java.util.Date(bill.createdAt))}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add",
+                tint = Color.White,
+                modifier = Modifier.border(width = 1.dp, color = Color.White, shape = CircleShape)
             )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun VerticalAddBillButtonPreview() {
+    VerticalAddBillButton(onClick = {})
+}
+
+@SuppressLint("SimpleDateFormat", "DefaultLocale")
+@Composable
+fun BillBox(bill: BillWithParticipantCount, onBillClick: (Long) -> Unit) {
+    Card(
+        modifier = Modifier
+            .size(width = 180.dp, height = 220.dp)
+            .clickable { onBillClick(bill.id) },
+        elevation = CardDefaults.cardElevation(4.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFADEED9))
+    ) {
+        Box(
+            modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 8.dp, bottom = 8.dp, start = 16.dp),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = "Arrow",
+                modifier = Modifier
+                    .size(50.dp)
+                    .padding(bottom = 16.dp)
+                    .align(Alignment.TopEnd)
+            )
+
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Column() {
+                    Text(
+                        text = bill.title,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = 22.sp
+                    )
+                    Text(
+                        text = "$ ${String.format("%.2f", bill.totalAmount)}",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Column() {
+                    Text(
+                        text = "Split to",
+                        fontSize = 22.sp
+                    )
+                    Text(
+                        text = "${bill.participantCount} ${if (bill.participantCount == 1) "person" else "people"}",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
+                    )
+                }
+            }
+
             Text(
-                text = "${bill.participantCount} participant${if (bill.participantCount != 1) "s" else ""}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+                text = "${java.text.SimpleDateFormat("dd MMM yyyy").format(java.util.Date(bill.createdAt))}",
+                fontSize = 18.sp,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
             )
         }
     }
@@ -312,9 +403,12 @@ fun BillBoxPreview() {
         id = 1L,
         title = "Dinner Party",
         createdAt = System.currentTimeMillis(),
-        participantCount = 5
+        participantCount = 5,
+        totalAmount = 150.0
     )
-    BillBox(bill = sampleBill)
+    Box(modifier = Modifier.background(Color.Black)) {
+        BillBox(bill = sampleBill, onBillClick = {})
+    }
 }
 
 @Composable
@@ -340,7 +434,7 @@ fun FriendBox(
             painter = painterResource(id = R.drawable.icons8_user),
             contentDescription = "Friend Icon",
             modifier = Modifier
-                .size(80.dp)
+                .size(70.dp)
         )
         Text(
             text = name,
@@ -353,7 +447,7 @@ fun FriendBox(
 
 @Preview
 @Composable
-fun previewFriendBox() {
+fun PreviewFriendBox() {
     FriendBox(
         name = "John Doe",
         onClick = {}

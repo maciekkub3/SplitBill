@@ -17,7 +17,7 @@ interface BillParticipantDao {
     suspend fun deleteBillParticipant(billParticipant: BillParticipant)
 
     @Query("SELECT * FROM BillParticipant WHERE billId = :billId")
-    fun getParticipantsForBill(billId: Long): Flow<List<BillParticipant>>
+    suspend fun getParticipantsForBill(billId: Long): List<BillParticipant>
 
     @Query("SELECT * FROM BillParticipant")
     fun getAllParticipants(): Flow<List<BillParticipant>>

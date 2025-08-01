@@ -10,13 +10,12 @@ class BillRepository @Inject constructor(
     private val billDao: BillDao
 ) {
     suspend fun allBills(): Flow<List<Bill>> = billDao.getAllBills()
+
     suspend fun upsertBill(bill: Bill) = billDao.upsertBill(bill)
 
     suspend fun deleteBill(bill: Bill) = billDao.deleteBill(bill)
 
-    suspend fun getById(id: Int): Bill? = billDao.getBillById(id)
-
-
+    suspend fun getById(id: Long): Bill? = billDao.getBillById(id)
 
     suspend fun insertParticipants(participants: List<BillParticipant>) = billDao.insertParticipants(participants)
 

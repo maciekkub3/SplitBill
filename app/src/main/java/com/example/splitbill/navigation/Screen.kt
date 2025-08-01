@@ -17,6 +17,6 @@ data object AddEventRoute : NavRoute {
 }
 
 @Serializable
-data class EventRoute(val eventId: Int) : NavRoute {
-    override val route: String = "Event/$eventId"
+data class EventRoute(val billId: Long) : NavRoute {
+    override val route: String = "Event/$billId"
 }

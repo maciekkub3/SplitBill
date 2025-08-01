@@ -9,6 +9,7 @@ import com.example.splitbill.data.repository.BillRepository
 import com.example.splitbill.data.repository.FriendRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.splitbill.data.classes.BillWithParticipantCount
+import com.example.splitbill.data.repository.ExpenseRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -22,7 +23,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val billRepository: BillRepository,
     private val friendRepository: FriendRepository,
-    private val billParticipantRepository: BillParticipantRepository
+    private val billParticipantRepository: BillParticipantRepository,
+    private val expenseRepository: ExpenseRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MainUiState())
@@ -30,7 +32,6 @@ class MainViewModel @Inject constructor(
 
     private val _effect = MutableSharedFlow<MainEffect>()
     val effect: SharedFlow<MainEffect> = _effect
-
 
     fun handleIntent(intent: MainIntent) {
         when (intent) {
@@ -115,15 +116,21 @@ class MainViewModel @Inject constructor(
             try {
                 combine(
                     billRepository.allBills(),
-                    billParticipantRepository.getAllParticipants()
+                    billParticipantRepository.getAllParticipants(),
                 ) { bills, participants ->
+
                     val countMap = participants.groupingBy { it.billId }.eachCount()
+
+                    val totalAmounts = expenseRepository.getTotalAmountPerBill()
+                        .associateBy({ it.billId }, { it.totalAmount })
+
                     bills.map { bill ->
                         BillWithParticipantCount(
                             id = bill.id,
                             title = bill.title,
                             createdAt = bill.createdAt,
-                            participantCount = countMap[bill.id] ?: 0
+                            participantCount = countMap[bill.id] ?: 0,
+                            totalAmount = totalAmounts[bill.id] ?: 0.0
                         )
                     }
                 }.collect { billsWithCount ->
@@ -153,9 +160,7 @@ class MainViewModel @Inject constructor(
     }
 
     private fun onNewFriendNameChange(name: String) {
-        _state.value = _state.value.copy(
-            friendName = name
-        )
+        _state.value = _state.value.copy(friendName = name)
     }
 
     private fun onAddBillClicked() {
