@@ -1,6 +1,5 @@
 package com.example.splitbill.ui.screens.addBillScreen
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.splitbill.data.local.entity.Bill

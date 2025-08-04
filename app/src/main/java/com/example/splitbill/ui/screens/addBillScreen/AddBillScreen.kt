@@ -3,7 +3,6 @@ package com.example.splitbill.ui.screens.addBillScreen
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,14 +18,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,7 +43,6 @@ import com.example.splitbill.data.local.entity.Friend
 import com.example.splitbill.navigation.HomeRoute
 import com.example.splitbill.ui.components.MyAppButton
 import com.example.splitbill.ui.screens.addBillScreen.AddBillIntent.EnterTitle
-import com.example.splitbill.ui.screens.mainScreen.MainIntent
 
 @Composable
 fun AddBillScreenRoot(

@@ -1,7 +1,6 @@
 package com.example.splitbill.ui.screens.billScreen
 
-import android.R.attr.fontWeight
-import android.R.attr.singleLine
+
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,7 +48,6 @@ import com.example.splitbill.data.classes.ExpenseItem
 import com.example.splitbill.data.local.entity.Friend
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
@@ -708,7 +706,7 @@ fun BillScreenPreview() {
 
 @Preview
 @Composable
-fun previewAddExpenseDialog() {
+fun PreviewAddExpenseDialog() {
     AddExpenseDialog(
         options = listOf(Friend(1, "Alice"), Friend(2, "Bob")),
         description = "Dinner",
@@ -725,7 +723,7 @@ fun previewAddExpenseDialog() {
 
 @Preview
 @Composable
-fun previewSettleUpDialog() {
+fun PreviewSettleUpDialog() {
     SettleUpDialog(
         settlementEntries = listOf(
             SettlementEntry("Alice", "Bob", 25.00),
@@ -739,7 +737,7 @@ fun previewSettleUpDialog() {
 
 @Preview
 @Composable
-fun previewDeleteDialog() {
+fun PreviewDeleteDialog() {
     DeleteDialog(
         onDismissRequest = {},
         onConfirm = {},

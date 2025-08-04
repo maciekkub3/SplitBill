@@ -61,7 +61,6 @@ import com.example.splitbill.data.classes.BillWithParticipantCount
 import com.example.splitbill.data.local.entity.Friend
 import com.example.splitbill.navigation.AddEventRoute
 import com.example.splitbill.navigation.EventRoute
-import com.example.splitbill.ui.screens.billScreen.BillIntent
 import com.example.splitbill.ui.screens.billScreen.DeleteDialog
 
 @Composable
