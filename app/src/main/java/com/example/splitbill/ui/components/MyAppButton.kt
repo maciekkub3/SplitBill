@@ -3,6 +3,7 @@ package com.example.splitbill.ui.components
 import android.R.attr.enabled
 import android.R.attr.text
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -35,7 +36,6 @@ fun MyAppButton(
         colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
         modifier = modifier
             .height(50.dp)
-            .shadow(4.dp)
 
     ) {
         Text(
@@ -51,8 +51,22 @@ fun MyAppButton(
 @Preview
 @Composable
 fun MyAppButtonPreview() {
-    MyAppButton(
-        text = "Click Me",
-        onClick = {},
-    )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .background(Color.LightGray)
+            .padding(16.dp),
+        contentAlignment = androidx.compose.ui.Alignment.Center
+    ) {
+        MyAppButton(
+            text = "Click Me",
+            onClick = {},
+            modifier = Modifier
+                .fillMaxWidth()
+
+
+        )
+    }
+
 }

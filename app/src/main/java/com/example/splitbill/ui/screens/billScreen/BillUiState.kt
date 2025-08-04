@@ -20,7 +20,12 @@ data class BillUiState(
     val payer: Friend? = null,
     val description: String = "",
     val amount: String = "",
-    val showDeleteDialog: Boolean = false
+    val showDeleteDialog: Boolean = false,
+    val billNameError: String? = null,
+    val amountError: String? = null,
+    val descriptionError: String? = null,
+    val payerError: String? = null,
+    val settleUpError: String? = null,
 )
 data class SettlementEntry(
     val from: String,

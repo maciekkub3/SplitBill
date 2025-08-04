@@ -47,14 +47,24 @@ class MainViewModel @Inject constructor(
             is MainIntent.DeleteFriend -> deleteFriend(intent.friend)
             is MainIntent.EditFriend -> editFriendName(intent.id, intent.newName)
             is MainIntent.OpenEditFriendDialog -> openEditFriendDialog(intent.friend)
+            MainIntent.DismissDeleteDialog -> dismissDeleteDialog()
+            MainIntent.ShowDeleteDialog -> showDeleteDialog()
         }
+    }
+
+    private fun dismissDeleteDialog() {
+        _state.update { it.copy(showDeleteDialog = false) }
+    }
+
+    private fun showDeleteDialog() {
+        _state.update { it.copy(showDeleteDialog = true) }
     }
 
     private fun addFriend() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             try {
-                val friend = Friend(name = _state.value.friendName)
+                val friend = Friend(name = _state.value.friendName.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() })
                 friendRepository.upsertFriend(friend)
                 _state.update { it.copy(isLoading = false, addFriendDialog = false) }
             } catch (e: Exception) {
@@ -74,7 +84,7 @@ class MainViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             try {
                 friendRepository.deleteFriend(friend)
-                _state.update { it.copy(isLoading = false, editFriendDialog = false) }
+                _state.update { it.copy(isLoading = false, editFriendDialog = false, showDeleteDialog = false) }
             } catch (e: Exception) {
                 Log.e("MainViewModel", "Error deleting friend", e)
                 _state.update {

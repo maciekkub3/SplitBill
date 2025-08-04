@@ -17,12 +17,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -32,14 +34,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.splitbill.data.local.entity.Friend
 import com.example.splitbill.navigation.HomeRoute
+import com.example.splitbill.ui.components.MyAppButton
 import com.example.splitbill.ui.screens.addBillScreen.AddBillIntent.EnterTitle
+import com.example.splitbill.ui.screens.mainScreen.MainIntent
 
 @Composable
 fun AddBillScreenRoot(
@@ -61,44 +68,104 @@ fun AddBillScreenRoot(
 
     AddBillScreen(
         state = state,
-        onEvent = viewModel::handleIntent
+        onEvent = viewModel::handleIntent,
+        onNavigateHome = {
+            navController.navigate(HomeRoute)
+        }
     )
 }
 @Composable
 fun AddBillScreen(
     state: AddBillUiState,
     onEvent: (AddBillIntent) -> Unit,
+    onNavigateHome: () -> Unit
 ) {
     Column(modifier = Modifier
         .fillMaxSize()
-        .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
+        .background(Color.White)
+        .padding(top = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Add Bill Screen")
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back icon",
+                modifier = Modifier
+                    .size(48.dp)
+                    .padding(8.dp)
+                    .align(Alignment.CenterStart)
+                    .clickable {
+                        onNavigateHome()
+                    },
+                tint = Color.Black
+            )
+
+            Text(
+                text = "Create a new split bill",
+                fontSize = 18.sp,
+            )
+
+        }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextField(
+        if( state.friends.isEmpty()) {
+            Text(
+                text = "You dont have any friends yet. " +
+                        "Add some friends to be able to create a bill.",
+                modifier = Modifier.padding(16.dp),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            return
+        }
+
+        OutlinedTextField(
             value = state.title,
             onValueChange = { onEvent(EnterTitle(it)) },
             label = { Text("Bill Name") },
-            modifier = Modifier.fillMaxWidth()
+            isError = state.billNameError != null,
+            supportingText = state.billNameError?.let {
+                { Text(text = it, color = Color.Red) }
+            },
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        state.participantsError?.let {
+            Text(
+                text = it,
+                color = Color.Red,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
 
         FriendsList(
             friends = state.friends,
             selectedFriends = state.selectedFriendIds,
             onFriendSelected = { friend ->
                 onEvent(AddBillIntent.ToggleParticipant(friend.id))
-            }
+            },
+            modifier = Modifier
+                .weight(1f)
         )
 
-        Button(onClick = { onEvent(AddBillIntent.SaveBill) }) {
-            Text(text = "Save Bill")
-        }
+        MyAppButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .shadow(8.dp, shape = RoundedCornerShape(20.dp)),
+            text = "Save Bill",
+            onClick = { onEvent(AddBillIntent.SaveBill) }
+        )
     }
 }
 
@@ -106,9 +173,12 @@ fun AddBillScreen(
 fun FriendsList(
     friends: List<Friend>,
     selectedFriends: Set<Long>,
-    onFriendSelected: (Friend) -> Unit
+    onFriendSelected: (Friend) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column {
+    Column (
+        modifier = modifier
+    ) {
         friends.forEach { friend ->
             val isSelected = friend.id in selectedFriends
             FriendItem(
@@ -208,7 +278,8 @@ fun AddBillScreenPreview() {
             friends = sampleFriends,
             selectedFriendIds = setOf(1, 2)
         ),
-        onEvent = {}
+        onEvent = {},
+        onNavigateHome = { }
     )
 }
 

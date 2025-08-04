@@ -1,5 +1,7 @@
 package com.example.splitbill.ui.screens.billScreen
 
+import android.R.attr.fontWeight
+import android.R.attr.singleLine
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,10 +48,14 @@ import androidx.compose.ui.window.Dialog
 import com.example.splitbill.data.classes.ExpenseItem
 import com.example.splitbill.data.local.entity.Friend
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.splitbill.data.local.entity.Bill
 import com.example.splitbill.data.local.entity.Expense
@@ -85,8 +91,8 @@ fun BillScreen(
     state: BillUiState,
     onEvent: (BillIntent) -> Unit,
     onNavigateHome: () -> Unit,
-    ) {
-    if (state.showAddExpenseDialog){
+) {
+    if (state.showAddExpenseDialog) {
         AddExpenseDialog(
             payer = state.payer,
             options = state.friends,
@@ -95,17 +101,25 @@ fun BillScreen(
             onDescriptionChange = { onEvent(BillIntent.DescriptionChange(it)) },
             onPayerChange = { onEvent(BillIntent.PayerChange(it)) },
             onAmountChange = { onEvent(BillIntent.AmountChange(it)) },
-            onAddClick = { onEvent(BillIntent.AddExpense(
-                description = state.description,
-                amount = state.amount.toDoubleOrNull() ?: 0.0,
-                paidById = state.payer?.id ?: 0L
-            )) },
+            onAddClick = {
+                onEvent(
+                    BillIntent.AddExpense(
+                        description = state.description,
+                        amount = state.amount.toDoubleOrNull() ?: 0.0,
+                        paidById = state.payer?.id ?: 0L
+                    )
+                )
+            },
+            descriptionError = state.descriptionError,
+            amountError = state.amountError,
+            payerError = state.payerError,
+
             onCancelClick = { onEvent(BillIntent.DismissAddExpenseDialog) },
             onDismissRequest = { onEvent(BillIntent.DismissAddExpenseDialog) },
         )
     }
 
-    if (state.showEditExpenseDialog){
+    if (state.showEditExpenseDialog) {
         AddExpenseDialog(
             payer = state.payer,
             options = state.friends,
@@ -149,81 +163,157 @@ fun BillScreen(
         )
     }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(Color.White)
-        .padding(16.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFE0E0E0))
+            .padding(top = 16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
+        Box(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+            contentAlignment = Alignment.Center
         ) {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = "Bill",
-                    fontWeight = FontWeight.Bold
-                )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back icon",
+                modifier = Modifier
+                    .size(48.dp)
+                    .padding(8.dp)
+                    .align(Alignment.CenterStart)
+                    .clickable {
+                        onNavigateHome()
+                    },
+                tint = Color.Black
+            )
+            Text(
+                text = "Bill",
+                fontSize = 18.sp,
+            )
 
-                Icon(
-                    imageVector = Icons.Default.Clear,
-                    contentDescription = "Remove Bill",
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .size(48.dp)
-                        .padding(8.dp)
-                        .clickable {
-                            onEvent(BillIntent.ShowDeleteDialog)
-
-                        },
-                    tint = Color.Red
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(text = "${state.bill?.title}", fontWeight = FontWeight.Bold)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(text = "Total Expense: ${state.totalAmount}")
-
-        Box(modifier = Modifier
-            .weight(1f)
-            .fillMaxWidth()
-        ) {
-            ExpenseList(
-                expenses = state.expenses.map { expense ->
-                    ExpenseItem(
-                        payerName = state.friends.find { it.id == expense.paidById }?.name ?: "Unknown",
-                        description = expense.name,
-                        date = SimpleDateFormat("dd MMM yyyy").format(Date(expense.date)),
-                        amount = expense.amount.toString()
-                    )
-                }
+            Icon(
+                imageVector = Icons.Default.Clear,
+                contentDescription = "Remove Bill",
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp)
+                    .padding(8.dp)
+                    .clickable {
+                        onEvent(BillIntent.ShowDeleteDialog)
+                    },
+                tint = Color.Red
             )
         }
 
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "${state.bill?.title}",
+            fontWeight = FontWeight.Bold,
+            fontSize = 22.sp,
+        )
+
+        Spacer(modifier = Modifier.height(22.dp))
+
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Total Expenses",
+                fontSize = 18.sp,
+            )
+            Text(
+                text = "${state.totalAmount}$",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+            )
+
+        }
+
+        Spacer(modifier = Modifier.height(22.dp))
+
+
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
+                .fillMaxSize()
+                .background(color = Color.White)
+                .weight(1f)
+                .padding(16.dp),
+        ) {
+            if(state.expenses.isEmpty()) {
+                Text(
+                    text = "No expenses added yet.",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp,
+                    color = Color.Gray
+                )
+                if (state.settleUpError != null) {
+                    Text(
+                        text = state.settleUpError,
+                        color = Color.Red,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+            } else {
+                ExpenseList(
+                    expenses = state.expenses.map { expense ->
+                        ExpenseItem(
+                            payerName = state.friends.find { it.id == expense.paidById }?.name
+                                ?: "Unknown",
+                            description = expense.name,
+                            date = SimpleDateFormat("dd MMM yyyy").format(Date(expense.date)),
+                            amount = expense.amount.toString()
+                        )
+                    }
+                )
+            }
+
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(
-                onClick = { onEvent(BillIntent.ShowAddExpenseDialog )},
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan)
+                onClick = { onEvent(BillIntent.ShowAddExpenseDialog) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
+                modifier = Modifier.size(width = 140.dp, height = 45.dp),
+                shape = RoundedCornerShape(30),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
             ) {
 
-                Text("Add Expense", color = Color.White)
+                Text(
+                    text = "Add Expense",
+                    color = Color.White,
+                    fontSize = 15.sp
+                )
             }
 
             Button(
                 onClick = { onEvent(BillIntent.CalculateSettlement) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Green),
+                modifier = Modifier.size(width = 140.dp, height = 45.dp),
+                shape = RoundedCornerShape(30),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
             ) {
-                Text("Settle Up" , color = Color.White)
+                Text(
+                    text = "Settle Up",
+                    color = Color.White,
+                    fontSize = 15.sp
+                )
             }
         }
     }
@@ -240,7 +330,6 @@ fun SettleUpDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -262,12 +351,13 @@ fun SettleUpDialog(
                     settlementEntries.forEach { entry ->
                         Text(
                             text = "${entry.from} owes ${entry.to}: ${"%.2f".format(entry.amount)}",
+                            fontSize = 16.sp,
                             modifier = Modifier.padding(vertical = 4.dp)
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -275,15 +365,17 @@ fun SettleUpDialog(
                 ) {
                     Button(
                         onClick = onExitClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-                    ) {
-                        Text("EXIT", color = Color.White)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
+                        modifier = Modifier.size(width = 120.dp, height = 45.dp),
+                        ) {
+                        Text("Exit", color = Color.White)
                     }
 
                     Button(
                         onClick = onCloseBillClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                    ) {
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        modifier = Modifier.size(width = 120.dp, height = 45.dp),
+                        ) {
                         Text("Close bill", color = Color.White)
                     }
                 }
@@ -309,45 +401,54 @@ fun ExpenseItemCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(vertical = 7.dp),
         shape = RoundedCornerShape(25.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFBFFFE3)) // light green
     ) {
         Row(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "User Icon",
-                tint = Color.Gray,
-                modifier = Modifier.size(40.dp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = "User Icon",
+                    tint = Color.Gray,
+                    modifier = Modifier.size(40.dp)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column {
+                    Text(
+                        text = expense.payerName,
+                        fontSize = 14.sp,
+                    )
+                    Text(
+                        text = expense.description,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+
+            Text(
+                text = expense.date,
+                fontSize = 16.sp,
+                color = Color.DarkGray
             )
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = expense.payerName,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = expense.description
-                )
-                Text(
-                    text = expense.date,
-                    fontSize = 12.sp,
-                    color = Color.DarkGray
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
             Text(
-                text = expense.amount,
+                text = "${expense.amount}$",
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -367,41 +468,65 @@ fun AddExpenseDialog(
     onCancelClick: () -> Unit,
     onDismissRequest: () -> Unit,
     isEditMode: Boolean = false,
+    descriptionError: String? = null,
+    amountError: String? = null,
+    payerError: String? = null
 ) {
     Dialog(onDismissRequest = onDismissRequest) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
         ) {
             Column(
                 modifier = Modifier
                     .background(Color.White, shape = RoundedCornerShape(16.dp))
-                    .padding(24.dp),
+                    .padding(18.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 WhoPaidDropdown(
                     options = options,
                     selectedOption = payer?.name ?: "Select Payer",
-                    onOptionSelected = onPayerChange
+                    onOptionSelected = onPayerChange,
+                    payerError = payerError
                 )
+
                 OutlinedTextField(
                     value = description,
                     onValueChange = onDescriptionChange,
-                    label = { Text("Description") },
-                    shape = RoundedCornerShape(50),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = amount,
-                    onValueChange = onAmountChange,
-                    label = { Text("Amount") },
+                    label = {
+                        Text(
+                            text = "Description",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                        )
+                    },
+                    isError = descriptionError != null,
+                    supportingText = {
+                        descriptionError?.let { Text(it) }
+                    },
                     shape = RoundedCornerShape(50),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = onAmountChange,
+                    label = {
+                        Text(
+                            text = "Amount",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                        )
+                    },
+                    isError = amountError != null,
+                    supportingText = {
+                        amountError?.let { Text(it) }
+                    },
+                    shape = RoundedCornerShape(50),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -411,17 +536,19 @@ fun AddExpenseDialog(
                 ) {
                     Button(
                         onClick = onAddClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Green),
+                        modifier = Modifier.size(width = 120.dp, height = 45.dp),
                     ) {
 
-                        Text( if (isEditMode) "Save" else "Add", color = Color.White)
+                        Text(if (isEditMode) "Save" else "Add", color = Color.White)
                     }
 
                     Button(
                         onClick = onCancelClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        modifier = Modifier.size(width = 120.dp, height = 45.dp),
                     ) {
-                        Text( if (isEditMode) "Delete" else "Cancel", color = Color.White)
+                        Text(if (isEditMode) "Delete" else "Cancel", color = Color.White)
                     }
                 }
             }
@@ -434,7 +561,9 @@ fun AddExpenseDialog(
 fun WhoPaidDropdown(
     options: List<Friend>,
     selectedOption: String,
-    onOptionSelected: (Friend) -> Unit
+    onOptionSelected: (Friend) -> Unit,
+    payerError: String? = null
+
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -446,10 +575,21 @@ fun WhoPaidDropdown(
             value = selectedOption,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Who paid") },
+            label = {
+                Text(
+                    text = "Who paid",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                )
+            },
+            isError = payerError != null,
+            supportingText = {
+                payerError?.let { Text(it) }
+            },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
+            shape = RoundedCornerShape(50),
             modifier = Modifier.menuAnchor()
         )
 
@@ -478,7 +618,7 @@ fun DeleteDialog(
     message: String,
     icon: ImageVector
 ) {
-    Dialog(onDismissRequest = onDismissRequest,) {
+    Dialog(onDismissRequest = onDismissRequest) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -498,16 +638,24 @@ fun DeleteDialog(
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(text = title, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = message, fontSize = 16.sp)
+                Text(text = message, fontSize = 16.sp, textAlign = TextAlign.Center)
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Button(onClick = onDismissRequest) {
+                    Button(
+                        onClick = onDismissRequest,
+                        modifier = Modifier.size(width = 120.dp, height = 45.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Gray))
+
+                    {
                         Text("Cancel")
                     }
-                    Button(onClick = onConfirm) {
+                    Button(
+                        onClick = onConfirm,
+                        modifier = Modifier.size(width = 120.dp, height = 45.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
                         Text("Confirm")
                     }
                 }
@@ -525,21 +673,23 @@ fun BillScreenPreview() {
                 id = 1,
                 title = "Dinner with Friends",
             ),
-            expenses = listOf(Expense(
-                id = 1,
-                billId = 1,
-                name = "Pizza",
-                amount = 50.00,
-                date = Date().time,
-                paidById = 1
-            ), Expense(
-                id = 2,
-                billId = 1,
-                name = "Drinks",
-                amount = 75.00,
-                date = Date().time,
-                paidById = 2
-            )),
+            expenses = listOf(
+                Expense(
+                    id = 1,
+                    billId = 1,
+                    name = "Pizza",
+                    amount = 50.00,
+                    date = Date().time,
+                    paidById = 1
+                ), Expense(
+                    id = 2,
+                    billId = 1,
+                    name = "Drinks",
+                    amount = 75.00,
+                    date = Date().time,
+                    paidById = 2
+                )
+            ),
             totalAmount = 125.00,
             friends = listOf(Friend(1, "Alice"), Friend(2, "Bob")),
             payer = null,
@@ -553,5 +703,48 @@ fun BillScreenPreview() {
         ),
         onEvent = {},
         onNavigateHome = {}
+    )
+}
+
+@Preview
+@Composable
+fun previewAddExpenseDialog() {
+    AddExpenseDialog(
+        options = listOf(Friend(1, "Alice"), Friend(2, "Bob")),
+        description = "Dinner",
+        payer = Friend(1, "Alice"),
+        amount = "50.00",
+        onDescriptionChange = {},
+        onPayerChange = {},
+        onAmountChange = {},
+        onAddClick = {},
+        onCancelClick = {},
+        onDismissRequest = {}
+    )
+}
+
+@Preview
+@Composable
+fun previewSettleUpDialog() {
+    SettleUpDialog(
+        settlementEntries = listOf(
+            SettlementEntry("Alice", "Bob", 25.00),
+            SettlementEntry("Bob", "Alice", 10.00)
+        ),
+        onExitClick = {},
+        onCloseBillClick = {},
+        onDismissRequest = {}
+    )
+}
+
+@Preview
+@Composable
+fun previewDeleteDialog() {
+    DeleteDialog(
+        onDismissRequest = {},
+        onConfirm = {},
+        title = "Delete Bill",
+        message = "Are you sure you want to delete this bill?",
+        icon = Icons.Default.Clear
     )
 }

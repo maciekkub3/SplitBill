@@ -14,5 +14,7 @@ sealed class MainIntent {
     object CloseAddFriendDialog : MainIntent()
     data class OpenEditFriendDialog(val friend:Friend) : MainIntent()
     object CloseEditFriendDialog : MainIntent()
+    object ShowDeleteDialog : MainIntent()
+    object DismissDeleteDialog : MainIntent()
 }
 

@@ -9,5 +9,7 @@ data class AddBillUiState(
     val selectedFriendIds: Set<Long> = emptySet(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val saveSuccess: Boolean = false
+    val saveSuccess: Boolean = false,
+    val billNameError: String? = null,
+    val participantsError: String? = null
 )

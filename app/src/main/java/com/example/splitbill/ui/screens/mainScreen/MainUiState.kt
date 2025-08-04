@@ -12,5 +12,6 @@ data class MainUiState(
     val error: String? = null,
     val friendName: String = "",
     val friendImageUri: String? = null,
-    val editingFriendId: Long? = null
+    val editingFriendId: Long? = null,
+    val showDeleteDialog: Boolean = false,
 )

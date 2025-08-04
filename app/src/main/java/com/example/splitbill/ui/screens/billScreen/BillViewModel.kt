@@ -64,10 +64,14 @@ class BillViewModel @Inject constructor(
     }
 
     private fun calculateSettlement() {
+
         val expenses = _state.value.expenses
         val friends = _state.value.friends
 
-        if (expenses.isEmpty() || friends.isEmpty()) return
+        if (expenses.isEmpty()) {
+            _state.update { it.copy(settleUpError = "Nothing to settle" ) }
+            return
+        }
 
         val total = expenses.sumOf { it.amount }
         val perPerson = total / friends.size
@@ -139,20 +143,45 @@ class BillViewModel @Inject constructor(
         }
     }
 
+    private fun validateExpense(description: String, amount: String, payer: Friend?): Boolean {
+        val amountValue = amount.toDoubleOrNull()
+
+        val descriptionError = if (description.isBlank()) "Description cannot be empty" else null
+        val amountError = if (amountValue == null || amountValue <= 0) "Amount must be a positive number" else null
+        val payerError = if (payer == null) "Payer must be selected" else null
+
+        val hasError = listOf(descriptionError, amountError, payerError).any { it != null }
+
+        if (hasError) {
+            _state.update {
+                it.copy(
+                    descriptionError = descriptionError,
+                    amountError = amountError,
+                    payerError = payerError
+                )
+            }
+            return false
+        }
+
+        return true
+    }
+
 
     private fun addExpense(description: String,amount: Double,paidById: Long) {
+        if (!validateExpense(description, amount.toString(), _state.value.payer)) return
         viewModelScope.launch {
             try {
                 expenseRepository.upsertExpense(
                     Expense(
-                        name = description,
+                        name = description.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
                         amount = amount,
                         paidById = paidById,
                         billId = args.billId
                     )
                 )
                 _state.update {
-                    it.copy(showAddExpenseDialog = false, description = "", amount = "", payer = null)
+                    it.copy(showAddExpenseDialog = false, description = "", amount = "", payer = null,
+                        descriptionError = null, amountError = null, payerError = null)
                 }
                 fetchBillWithParticipantsAndExpenses(args.billId)
             } catch (e: Exception) {
@@ -207,7 +236,7 @@ class BillViewModel @Inject constructor(
     }
 
     private fun dismissAddExpenseDialog() {
-        _state.update { it.copy(showAddExpenseDialog = false) }
+        _state.update { it.copy(showAddExpenseDialog = false, descriptionError = null, payerError = null, amountError = null) }
     }
 
     private fun showEditExpenseDialog() {

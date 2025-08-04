@@ -43,6 +43,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -60,6 +61,8 @@ import com.example.splitbill.data.classes.BillWithParticipantCount
 import com.example.splitbill.data.local.entity.Friend
 import com.example.splitbill.navigation.AddEventRoute
 import com.example.splitbill.navigation.EventRoute
+import com.example.splitbill.ui.screens.billScreen.BillIntent
+import com.example.splitbill.ui.screens.billScreen.DeleteDialog
 
 @Composable
 fun MainScreenRoot(
@@ -95,6 +98,19 @@ fun MainScreen(
     onEvent: (MainIntent) -> Unit,
     onBillClick: (Long) -> Unit,
     ) {
+
+    if (state.showDeleteDialog) {
+        DeleteDialog(
+            onDismissRequest = { onEvent(MainIntent.DismissDeleteDialog) },
+            onConfirm = {
+                onEvent(MainIntent.DeleteFriend(Friend(state.editingFriendId!!, state.friendName)))
+            },
+            title = "Delete Friend",
+            message = "Are you sure you want to delete this friend?",
+            icon = Icons.Default.Clear
+        )
+    }
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -116,9 +132,10 @@ fun MainScreen(
                     name = state.friendName,
                     onNameChange = { onEvent(MainIntent.OnNewFriendNameChange(it)) },
                     onAddClick = { onEvent(MainIntent.EditFriend(state.editingFriendId, state.friendName))},
-                    onCancelClick = { onEvent(MainIntent.DeleteFriend(Friend(state.editingFriendId!!, state.friendName))) },
+                    onCancelClick = { onEvent(MainIntent.CloseEditFriendDialog) },
                     onDismissRequest = { onEvent(MainIntent.CloseEditFriendDialog) },
-                    isEditMode = true
+                    isEditMode = true,
+                    onDeleteClick = { onEvent(MainIntent.ShowDeleteDialog) }
                 )
         }
 
@@ -157,18 +174,33 @@ fun MainScreen(
                     fontSize = 30.sp,
                 )
 
-                ScrollingGrid(
-                    friends = state.friends,
-                    onFriendClick = { friend ->
-                        onEvent(MainIntent.OpenEditFriendDialog(friend))
+                Box(modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                ) {
+                    if (state.friends.isEmpty()) {
+                        Text(
+                            text = "No friends added yet.",
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .align(Alignment.Center),
+                            fontSize = 20.sp,
+                            color = Color.Gray,
+                        )
+                    } else {
+                        ScrollingGrid(
+                            friends = state.friends,
+                            onFriendClick = { friend ->
+                                onEvent(MainIntent.OpenEditFriendDialog(friend))
+                            }
+                        )
                     }
-                )
+                }
 
                 MyAppButton(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
-                        .height(50.dp),
+                        .shadow(8.dp, shape = RoundedCornerShape(20.dp)),
                     text = "Add Friend",
                     onClick = { onEvent(MainIntent.OpenAddFriendDialog) }
                 )
@@ -191,6 +223,7 @@ fun AddFriendDialog(
     onCancelClick: () -> Unit,
     onDismissRequest: () -> Unit,
     isEditMode: Boolean = false,
+    onDeleteClick: () -> Unit = {}
     ) {
     Dialog(onDismissRequest = onDismissRequest) {
         Box(
@@ -229,7 +262,8 @@ fun AddFriendDialog(
                 ) {
                     Button(
                         onClick = onAddClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Green),
+                        modifier = Modifier.size(width = 100.dp, height = 45.dp),
                     ) {
 
                         Text( if (isEditMode) "Save" else "Add", color = Color.White)
@@ -237,11 +271,25 @@ fun AddFriendDialog(
 
                     Button(
                         onClick = onCancelClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                                modifier = Modifier.size(width = 100.dp, height = 45.dp)
+
                     ) {
-                        Text( if (isEditMode) "Delete" else "Cancel", color = Color.White)
+                        Text( "Cancel", color = Color.White)
                     }
                 }
+            }
+            if (isEditMode) {
+                Icon(
+                    imageVector = Icons.Default.Clear,
+                    tint = Color.Red,
+                    contentDescription = "Edit Friend",
+                    modifier = Modifier
+                        .size(64.dp)
+                        .padding(bottom = 16.dp)
+                        .align(Alignment.TopEnd)
+                        .clickable { onDeleteClick() }
+                )
             }
         }
     }
@@ -275,13 +323,25 @@ fun HorizontalCardRow(bills: List<BillWithParticipantCount>, onBillClick: (Long)
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
 
         item {
             VerticalAddBillButton(
                 onClick = onAddBillClick
             )
+        }
+
+        if (bills.isEmpty()) {
+            item {
+                Text(
+                    text = "No bills added yet.",
+                    fontSize = 20.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
 
         items(bills) { bill ->
@@ -479,5 +539,31 @@ fun MainScreenPreview() {
         ),
         onEvent = {},
         onBillClick = {}
+    )
+}
+
+@Preview
+@Composable
+fun PreviewAddFriendDialog() {
+    AddFriendDialog(
+        name = "John Doe",
+        onNameChange = {},
+        onAddClick = {},
+        onCancelClick = {},
+        onDismissRequest = {},
+        isEditMode = false
+    )
+}
+
+@Preview
+@Composable
+fun PreviewEditFriendDialog() {
+    AddFriendDialog(
+        name = "John Doe",
+        onNameChange = {},
+        onAddClick = {},
+        onCancelClick = {},
+        onDismissRequest = {},
+        isEditMode = true
     )
 }

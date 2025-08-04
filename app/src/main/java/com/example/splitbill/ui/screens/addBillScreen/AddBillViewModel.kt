@@ -55,6 +55,7 @@ class AddBillViewModel @Inject constructor(
         }
     }
 
+
     private fun toggleParticipant(friendId: Long) {
         val selectedFriendIds = _state.value.selectedFriendIds.toMutableSet()
         if (selectedFriendIds.contains(friendId)) {
@@ -73,17 +74,40 @@ class AddBillViewModel @Inject constructor(
             )
         }
     }
+
+    private fun validateBill(): Boolean {
+
+        val title = _state.value.title.trim()
+        val selectedFriends = _state.value.selectedFriendIds
+
+        val titleError = if (title.isBlank()) "Bill name cannot be empty" else null
+        val participantsError = if (selectedFriends.isEmpty()) "At least one participant must be selected" else null
+
+        val hasError = listOf(titleError, participantsError).any { it != null }
+
+        if (hasError) {
+            _state.update {
+                it.copy(
+                    billNameError = titleError,
+                    participantsError = participantsError
+                )
+            }
+            return false
+        }
+        return true
+    }
+
     private fun handleSaveBill() {
+        if (!validateBill()) return
         viewModelScope.launch {
 
             _state.update { it.copy(isLoading = true) }
 
             try {
-                val bill = Bill(title = _state.value.title)
+                val bill = Bill(title = _state.value.title.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() })
                 val participants = _state.value.selectedFriendIds
                 billRepository.insertBillAndParticipants(bill, participants.toList())
                 _effect.emit(AddBillEffect.NavigateToBillScreen)
-
 
             } catch (e: Exception) {
                 _state.update { it.copy(
