@@ -3,7 +3,7 @@ This is a mobile application for splitting expenses among friends, developed as 
 📱 About the App  
 Split Bill helps groups of friends manage shared expenses by tracking who paid for what and calculating fair splits. It supports adding bills, assigning participants, and keeping an expense history, making it easier to settle up after group activities.  
 
-💡 Features
+💡 Features  
 🧾 Bill Management – Add, edit, and delete bills with detailed expense tracking.  
 👥 Friends Management – Add, edit and delete friends to include them in bills.  
 💸 Expense Splitting – Assign bill participants, and calculate how costs are divided.  
