@@ -14,7 +14,7 @@ Split Bill helps groups of friends manage shared expenses by tracking who paid f
 Kotlin
 Jetpack Compose
 Room Database
-Kotlin Coroutines & Flow
+Kotlin Coroutines
 MVI
 Hilt for Dependency Injection
 
