@@ -1,4 +1,3 @@
-<img width="399" height="893" alt="image" src="https://github.com/user-attachments/assets/1bead51a-485d-4cc4-8e2a-055b07dc00e1" />💰 Split Bill App
 This is a mobile application for splitting expenses among friends, developed as a personal project to practice Android development.
 
 📱 About the App
@@ -20,5 +19,7 @@ MVI
 Hilt for Dependency Injection
 
 📱 Screens
+
+
 <img width="399" height="893" alt="image" src="https://github.com/user-attachments/assets/8bf2e4a0-4d15-4982-b68e-a392d5df8327" />
 
