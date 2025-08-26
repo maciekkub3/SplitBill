@@ -1,21 +1,20 @@
-This is a mobile application for splitting expenses among friends, developed as a personal project to practice Android development.
+This is a mobile application for splitting expenses among friends, developed as a personal project to practice Android development.  
 
-📱 About the App
-Split Bill helps groups of friends manage shared expenses by tracking who paid for what and calculating fair splits. It supports adding bills, assigning participants, and keeping an expense history, making it easier to settle up after group activities.
+📱 About the App  
+Split Bill helps groups of friends manage shared expenses by tracking who paid for what and calculating fair splits. It supports adding bills, assigning participants, and keeping an expense history, making it easier to settle up after group activities.  
 
 💡 Features
-🧾 Bill Management – Add, edit, and delete bills with detailed expense tracking.
-👥 Friends Management – Add, edit and delete friends to include them in bills.
-💸 Expense Splitting – Assign bill participants, and calculate how costs are divided.
-📊 Overview & History – View a summary of all expenses and a detailed history of transactions.
+🧾 Bill Management – Add, edit, and delete bills with detailed expense tracking.  
+👥 Friends Management – Add, edit and delete friends to include them in bills.  
+💸 Expense Splitting – Assign bill participants, and calculate how costs are divided.  
+📊 Overview & History – View a summary of all expenses and a detailed history of transactions.  
 
-⚙️ Tech Stack
-
-Kotlin
-Jetpack Compose
-Room Database
-Kotlin Coroutines
-MVI
+⚙️ Tech Stack  
+Kotlin  
+Jetpack Compose  
+Room Database  
+Kotlin Coroutines  
+MVI  
 Hilt for Dependency Injection
 
 📱 Screens
