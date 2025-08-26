@@ -21,16 +21,11 @@ Hilt for Dependency Injection
 📱 Screens
 
 
-<img width="401" height="894" alt="image" src="https://github.com/user-attachments/assets/e76e45fb-373c-47fd-9314-82e147b9d6b0" />
-
+<img width="400" height="894" alt="image" src="https://github.com/user-attachments/assets/7cbb2c89-7d1a-4ce6-868a-bff84254986d" />
 <img width="398" height="891" alt="image" src="https://github.com/user-attachments/assets/37690c26-ff55-40af-88f9-b927e7b5aaf7" />
-
 <img width="400" height="893" alt="image" src="https://github.com/user-attachments/assets/472dd44e-c21a-4435-90b1-c304d89890f8" />
-
 <img width="402" height="892" alt="image" src="https://github.com/user-attachments/assets/ff39187f-8515-41fb-baf6-d2dad5e74fa7" />
-
 <img width="401" height="894" alt="image" src="https://github.com/user-attachments/assets/2f6872d3-09c2-4c85-88cd-8d34f309e011" />
-
 <img width="403" height="894" alt="image" src="https://github.com/user-attachments/assets/bfbc0e95-4de5-484e-a257-a8b92250f4eb" />
 
 
